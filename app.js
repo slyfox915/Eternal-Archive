@@ -1,0 +1,371 @@
+const SUPABASE_URL='https://kuppxzrlemaevrwijhgb.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_E3mhAr1m7cR_JuhKVyBuNQ_9oVxuAv6';
+let supabaseClient=null, authUser=null, authSession=null;
+try{if(window.supabase&&SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_'))supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);}catch(e){console.warn('Supabase client unavailable',e)}
+const STORAGE_KEY='eternal_archive_stage2_progress_v1';
+let progress={solved:[],hints:{},lastPage:'home',stage3Solved:[],stage3Hints:{},ending:null,stage4Solved:[],stage4Hints:{},stage5Solved:[],stage5Hints:{},stage6Solved:[],stage6Hints:{},stage7Solved:[],stage7Hints:{},stage8Solved:[],stage8Hints:{}};
+try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');progress={...progress,...saved,stage3Solved:saved.stage3Solved||[],stage3Hints:saved.stage3Hints||{},ending:saved.ending||null,stage4Solved:saved.stage4Solved||[],stage4Hints:saved.stage4Hints||{},stage5Solved:saved.stage5Solved||[],stage5Hints:saved.stage5Hints||{},stage6Solved:saved.stage6Solved||[],stage6Hints:saved.stage6Hints||{},stage7Solved:saved.stage7Solved||[],stage7Hints:saved.stage7Hints||{},stage8Solved:saved.stage8Solved||[],stage8Hints:saved.stage8Hints||{}};}catch(e){}
+const navButtons=[...document.querySelectorAll('[data-page]')];
+function showPage(id){if((id==='restricted'||id==='terminal'||id==='stage3')&&progress.solved.length<4){id='investigation';setFeedback(1,'The restricted directories remain sealed. Complete all four investigations first.');}if((id==='forgotten'||id==='root')&&progress.stage3Solved.length<3){id=progress.solved.length===4?'stage3':'investigation';}if((id==='stage4'||id==='epilogue')&&(!progress.ending||progress.stage3Solved.length<3)){id='root';}if((id==='stage5'||id==='trueRecord')&&progress.stage4Solved.length<3){id=progress.ending?'stage4':'root';}if(id==='stage6'&&progress.stage5Solved.length<3){id=progress.stage4Solved.length===3?'stage5':'stage4';}if(id==='livingEpilogue'&&progress.stage6Solved.length<3){id=progress.stage5Solved.length===3?'stage6':'stage5';}if(id==='stage7'&&progress.stage6Solved.length<3){id=progress.stage5Solved.length===3?'stage6':'stage5';}if(id==='finalRecord'&&progress.stage7Solved.length<3){id=progress.stage6Solved.length===3?'stage7':'stage6';}if(id==='stage8'&&progress.stage7Solved.length<3){id=progress.stage7Solved.length===3?'finalRecord':'stage7';}if(id==='eighthEpilogue'&&progress.stage8Solved.length<3){id=progress.stage7Solved.length===3?'stage8':'stage7';}document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));navButtons.forEach(b=>b.classList.toggle('active',b.dataset.page===id));progress.lastPage=id;saveLocal();if(id==='terminal'){setTimeout(()=>terminalInput&&terminalInput.focus({preventScroll:true}),0);}}
+navButtons.forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.go)));
+const people=[
+['Elias Vey','Chief Archivist','Discovered irregularities in the 1998 registry. Last verified communication: 16 November 1998.'],['Marcus Vale','Executor','Disappeared during the 1998 incident. No confirmed personal records recovered.'],['Helena Cross','Keeper','Her recorded date of death predates the earliest known date of birth.'],['Adrian Wren','Historian','Catalogued a manuscript whose material was dated earlier than its attributed language.'],['Miriam Ashford','Archivist','Her handwriting appears in documents separated by more than two centuries.'],['Thomas Greer','Executor','Submitted a testimony describing a conversation with an unidentified second speaker.'],['Samuel Orin','Keeper','Seven portraits are catalogued under the same name.'],['Clara Whitmore','Initiate','The registry lists her initiation at an unusually young age.'],['Victor Hale','Historian','Investigated the succession of the First Witness.'],['Nathaniel Crowe','Keeper','Last confirmed custodian associated with the Third Seal.'],['Evelyn March','Archivist','Her name appears in two separate historical registers.'],['Arthur Bell','Executor','Authorized the removal of an uncatalogued collection.'],['Catherine Voss','Keeper','Left an unsigned warning concerning the Seventh Seal.'],['Julian Mercer','Historian','Collected accounts of a civilization preceding recorded history.'],['Beatrice Shaw','Archivist','Her final testimony is referenced but absent from the archive.'],['Edmund Graves','Executor','Refused to complete the Last Departure.'],['Lydia North','Initiate','Reported seeing a figure described only as “the first”.'],['Gabriel Thorne','Keeper','Associated with the Fifth Seal in a damaged custody ledger.'],['Margaret Ellis','Archivist','Maintained the archive’s original index.'],['Daniel Rook','Executor','Accused in an unsigned report of compromising a sealed record.'],['Esther Quinn','Keeper','Recorded the final known ceremony before the 1998 incident.'],['Silas Reed','Historian','Identified inconsistencies in the First Witness succession.'],['Elias Vey','Chief Archivist','A second registry entry. The archive does not explain why the same person is numbered twice.']
+];
+const list=document.getElementById('members');const memberModal=document.getElementById('memberModal');const closeMemberModal=()=>{memberModal.classList.remove('open');memberModal.setAttribute('aria-hidden','true')};document.getElementById('closeMemberModal').addEventListener('click',closeMemberModal);memberModal.addEventListener('click',e=>{if(e.target===memberModal)closeMemberModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&memberModal.classList.contains('open'))closeMemberModal()});people.forEach((p,i)=>{const b=document.createElement('button');b.className='member';b.innerHTML=`<div class="num">RECORD ${String(i+1).padStart(2,'0')}</div><h3>${p[0]}</h3><p>${p[1]}</p><div class="meta">STATUS: MISSING / UNCONFIRMED</div>`;b.addEventListener('click',()=>{document.getElementById('detailName').textContent=p[0];document.getElementById('detailText').textContent=p[2];document.getElementById('detailMeta').textContent=`REGISTRY NUMBER: ${String(i+1).padStart(2,'0')}  ·  POSITION: ${p[1].toUpperCase()}  ·  STATUS: UNRESOLVED`;memberModal.classList.add('open');memberModal.setAttribute('aria-hidden','false');document.getElementById('closeMemberModal').focus()});list.appendChild(b)});
+function searchArchive(){const q=document.getElementById('archiveSearch').value.toLowerCase().trim();let count=0;document.querySelectorAll('#archiveResults .doc').forEach(d=>{const ok=!q||(d.dataset.search+' '+d.innerText).toLowerCase().includes(q);d.style.display=ok?'grid':'none';if(ok)count++});document.getElementById('searchStatus').textContent=`SEARCH INDEX: ${count} MATCHING DOCUMENT${count===1?'':'S'}`;}
+document.getElementById('searchBtn').addEventListener('click',searchArchive);document.getElementById('archiveSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchArchive()});
+const hints={1:['Look at the capital letters that appear unexpectedly inside the obituary sentences.','Read those letters from the earliest date to the latest date.','The eight first letters should form a familiar instruction about memory.'],2:['The timestamp index gives the date 16 November 1998.','The transcript is labelled T-07. Combine that identifier with the year.','The complete identifier is DOC-07-1998.'],3:['The dates cannot all describe an ordinary human lifespan.','The records point to the title that existed before the current succession.','The two words are the ordinal word for number one, followed by the word for a single entity.'],4:['The photograph contains 23 people even though the registry has 24 numbered entries.','The duplicate is an entry for the same identity, not another physical person.','The answer begins with I and describes who or what a person is.']};
+function clean(v){return v.toLowerCase().trim().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ')}
+function setFeedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(progress));renderProgress();syncProgress();}
+async function verifyRemoteAnswer(caseNumber, answer){if(!supabaseClient||!authSession?.access_token)throw new Error('Your archive session is not connected. Refresh the page and try again.');const {data,error}=await supabaseClient.functions.invoke('verify-archive-answer',{body:{case_number:caseNumber,answer}});if(error)throw new Error(error.message||'The archive could not verify this finding.');if(typeof data?.correct!=='boolean')throw new Error(data?.error||'The archive returned an invalid response.');return data.correct;}
+async function solve(n){const input=document.getElementById('answer'+n);const button=document.querySelector(`[data-check="${n}"]`);button.disabled=true;setFeedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){setFeedback(n,'Finding not accepted. Re-examine the record and try again.');button.disabled=false;return;}if(!progress.solved.includes(n))progress.solved.push(n);document.getElementById('unlock'+n).classList.add('show');setFeedback(n,'Finding accepted. Restricted record authorized.',true);input.disabled=true;saveLocal();}catch(e){setFeedback(n,e.message+' Your progress has not been changed.');button.disabled=false;}}
+document.querySelectorAll('[data-check]').forEach(b=>b.addEventListener('click',()=>solve(Number(b.dataset.check))));document.querySelectorAll('[data-hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.hint);const level=Math.min((progress.hints[n]||0)+1,3);progress.hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderProgress(){for(let n=1;n<=4;n++){const done=progress.solved.includes(n);document.getElementById('pill'+n).classList.toggle('done',done);if(done){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-check="${n}"]`).disabled=true;setFeedback(n,'Finding accepted. Restricted record authorized.',true);}}const count=progress.solved.length;document.getElementById('solvedCount').textContent=count+' / 4';document.getElementById('unlockedCount').textContent=count;document.getElementById('investigationProgress').style.width=(count/4*100)+'%';document.getElementById('investigationComplete').style.display=count===4?'block':'none';if(count===4){document.querySelectorAll('#restrictedList .restricted-file').forEach((el,i)=>{const n=i+1;el.innerHTML=`<div class="record-lock">[ AUTHORIZED ] / ${['DOC-OBIT-01','DOC-07-1998','DOC-IDENTITY-03','DOC-PHOTO-04'][i]}</div><h3>${['The memory annotation','Transcript annotation','First Witness succession','The group photograph'][i]}</h3><p>${['Memory is not a passive act. It is a lock.','The seventh was never a place. It is what remains when all the others are named.','The First Witness was a title. The title did not remain with the same person.','The archive counted identities, not bodies. One identity could be entered more than once.'][i]}</p>`;});}renderStage3();}
+
+const stage3Hints={5:['The three documents describe a role that passes from one bearer to another.','The office continues after the person dies.','The archive calls a continuing position a title.'],6:['Elias says the person is not a legitimate successor.','The missing word means someone pretending to be another person.','It begins with I and has eight letters.'],7:['The quoted final sentence is the instruction to follow.','It contains five words and begins with “Choose”.','Enter: Choose what deserves to remain.']};
+function stage3Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage3(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stagecheck="${n}"]`);button.disabled=true;stage3Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage3Feedback(n,'Finding not accepted. Re-examine the evidence.');button.disabled=false;return;}if(!progress.stage3Solved.includes(n))progress.stage3Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage3Feedback(n,n===7?'All three records reconstructed. Root authorization granted.':'Finding accepted. Record annotation recovered.',true);saveLocal();}catch(e){stage3Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stagecheck]').forEach(b=>b.addEventListener('click',()=>solveStage3(Number(b.dataset.stagecheck))));
+document.querySelectorAll('[data-stagehint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stagehint);const level=Math.min((progress.stage3Hints[n]||0)+1,3);progress.stage3Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage3Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage3(){const count=progress.stage3Solved.length;document.getElementById('stage3Count').textContent=count+' / 3';document.getElementById('stage3Progress').style.width=(count/3*100)+'%';[5,6,7].forEach(n=>{const done=progress.stage3Solved.includes(n);document.getElementById('p3pill'+n).classList.toggle('done',done);if(done){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stagecheck="${n}"]`).disabled=true;stage3Feedback(n,n===7?'All three records reconstructed. Root authorization granted.':'Finding accepted. Record annotation recovered.',true);}});document.getElementById('stage3Nav').style.display=progress.solved.length===4?'flex':'none';document.getElementById('forgottenNav').style.display=count===3?'flex':'none';document.getElementById('rootNav').style.display=count===3?'flex':'none';if(progress.ending)renderEnding(progress.ending);document.getElementById('stage4Nav').style.display=progress.ending?'flex':'none';document.getElementById('stage4Ending').textContent=progress.ending?progress.ending.toUpperCase():'PENDING';renderStage4();}
+const endingData={silence:['The Final Silence','The recovered names are sealed. The archive returns to darkness, and the seven boundaries remain. Somewhere beyond the records, something continues to wait.'],dawn:['The First Dawn','The final record is opened. The archive reports that all seven seals have been released. The last surviving line reads: “At last, I am remembered.”'],keeper:['The New Keeper','The archive accepts your identity as its new custodian. The First One remains sealed. A new entry appears in the registry — number 025.']};
+function renderEnding(which){const data=endingData[which];if(!data)return;document.getElementById('endingResult').classList.add('show');document.getElementById('endingTitle').textContent=data[0];document.getElementById('endingText').textContent=data[1];document.getElementById('endingStamp').textContent='ENDING RECORDED / OUTSIDER 018 / '+new Date().toISOString();document.getElementById('epilogueEnding').textContent='YOUR RECORDED CHOICE: '+data[0].toUpperCase()+'. '+data[1];document.getElementById('epilogueStatus').textContent='ENDING PRESERVED: '+data[0].toUpperCase()+' / AFTERWORD RECORDS: '+progress.stage4Solved.length+'/3.';document.querySelectorAll('[data-ending]').forEach(b=>b.closest('.tile').classList.toggle('ending-selected',b.dataset.ending===which));}
+document.querySelectorAll('[data-ending]').forEach(b=>b.addEventListener('click',()=>{if(progress.stage3Solved.length<3)return;progress.ending=b.dataset.ending;saveLocal();renderEnding(progress.ending);}));document.getElementById('showEndingAgain').addEventListener('click',()=>{if(progress.ending)renderEnding(progress.ending);document.getElementById('stage4Nav').style.display=progress.ending?'flex':'none';document.getElementById('stage4Ending').textContent=progress.ending?progress.ending.toUpperCase():'PENDING';renderStage4();});
+
+const stage4Hints={8:['One of the seventeen lines is explicitly a placeholder, not a completed investigator.','Subtract the placeholder from the total number of lines.','The answer is the number immediately before eighteen, written as a word.'],9:['The memo says this role watched the seven and held their records.','It is not a god or a seal; it is another witness.','The designation has two words and begins with “eighth”.'] ,10:['The final quoted sentence is the line to submit.','It begins with “We were never the key”.','Enter: We were the lock.']};
+function stage4Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage4(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stage4check="${n}"]`);button.disabled=true;stage4Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage4Feedback(n,'Finding not accepted. Check the recovered memo again.');button.disabled=false;return;}if(!progress.stage4Solved.includes(n))progress.stage4Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage4Feedback(n,n===10?'Afterword complete. Epilogue authorization granted.':'Finding accepted. Supplemental record recovered.',true);saveLocal();}catch(e){stage4Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stage4check]').forEach(b=>b.addEventListener('click',()=>solveStage4(Number(b.dataset.stage4check))));
+document.querySelectorAll('[data-stage4hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stage4hint);const level=Math.min((progress.stage4Hints[n]||0)+1,3);progress.stage4Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage4Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage4(){const count=progress.stage4Solved.length;document.getElementById('stage4Count').textContent=count+' / 3';document.getElementById('stage4Progress').style.width=(count/3*100)+'%';[8,9,10].forEach(n=>{const done=progress.stage4Solved.includes(n);if(done){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stage4check="${n}"]`).disabled=true;stage4Feedback(n,n===10?'Afterword complete. Epilogue authorization granted.':'Finding accepted. Supplemental record recovered.',true);}});document.getElementById('epilogueNav')?.style?.setProperty('display',count===3?'flex':'none');document.getElementById('stage5Nav').style.display=count===3?'flex':'none';renderStage5();}
+
+const stage5Hints={11:['The author field describes a collective, not a named person.','Every session contributed a line to the record.','The answer is the people who investigated the archive, as a group.'],12:['The archive stores events after they happen.','The fragments describe something that may still become.','One word: the opposite of the past.'],13:['The final instruction says not to close the record.','The next page must be allowed to become something not yet decided.','The word means not yet written.']};
+function stage5Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage5(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stage5check="${n}"]`);button.disabled=true;stage5Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage5Feedback(n,'Finding not accepted. Read the fragments again.');button.disabled=false;return;}if(!progress.stage5Solved.includes(n))progress.stage5Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage5Feedback(n,n===13?'Protocol V complete. Final record authorized.':'Finding accepted. The blank record changes.',true);saveLocal();}catch(e){stage5Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stage5check]').forEach(b=>b.addEventListener('click',()=>solveStage5(Number(b.dataset.stage5check))));
+document.querySelectorAll('[data-stage5hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stage5hint);const level=Math.min((progress.stage5Hints[n]||0)+1,3);progress.stage5Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage5Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage5(){const count=progress.stage5Solved.length;document.getElementById('stage5Count').textContent=count+' / 3';document.getElementById('stage5Progress').style.width=(count/3*100)+'%';[11,12,13].forEach(n=>{if(progress.stage5Solved.includes(n)){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stage5check="${n}"]`).disabled=true;stage5Feedback(n,n===13?'Protocol V complete. Final record authorized.':'Finding accepted. The blank record changes.',true);}});document.getElementById('stage6Nav').style.display=count===3?'flex':'none';renderStage6();}
+const stage6Hints={14:['The log says no administrator is present, but execution continues.','It is a process that runs automatically when conditions are met.','Think of a system that runs when its conditions are met, without a person issuing each instruction.'],15:['The phrase is not the writer or the archive. It is whoever reads after the previous investigator.','The record is passed from one reader to another.','Two words: the person who opens the record after the previous investigator.'],16:['The archive may read and compare, but it cannot alter personal memory without permission.','The required principle is freely given agreement.','One word: the voluntary agreement of the person whose memory may be affected.']};
+function stage6Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage6(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stage6check="${n}"]`);button.disabled=true;stage6Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage6Feedback(n,'Finding not accepted. Re-read the process notes.');button.disabled=false;return;}if(!progress.stage6Solved.includes(n))progress.stage6Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage6Feedback(n,n===16?'Protocol VI complete. The Keeper’s note is available.':'Finding accepted. The living index updates.',true);saveLocal();}catch(e){stage6Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stage6check]').forEach(b=>b.addEventListener('click',()=>solveStage6(Number(b.dataset.stage6check))));
+document.querySelectorAll('[data-stage6hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stage6hint);const level=Math.min((progress.stage6Hints[n]||0)+1,3);progress.stage6Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage6Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage6(){const count=progress.stage6Solved.length;document.getElementById('stage6Count').textContent=count+' / 3';document.getElementById('stage6Progress').style.width=(count/3*100)+'%';[14,15,16].forEach(n=>{if(progress.stage6Solved.includes(n)){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stage6check="${n}"]`).disabled=true;stage6Feedback(n,n===16?'Protocol VI complete. The Keeper’s note is available.':'Finding accepted. The living index updates.',true);}});document.getElementById('stage7Nav').style.display=count===3?'flex':'none';renderStage7();}
+
+const stage7Hints={17:['All three fragments describe something that survives the destruction of a physical record.','It is what a reader carries after the page and name are gone.','One word: the act or state of remembering.'],18:['The seals keep the First One from absorbing everything else.','They preserve a boundary between distinct beings and realities.','One word: the condition of remaining distinct rather than merged.'],19:['No administrator, Keeper, or automatic process may choose.','The final authority is the reader’s ability to decide.','One word: the act or power of deciding between possibilities.']};
+function stage7Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage7(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stage7check="${n}"]`);button.disabled=true;stage7Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage7Feedback(n,'Finding not accepted. Reconsider what the evidence says.');button.disabled=false;return;}if(!progress.stage7Solved.includes(n))progress.stage7Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage7Feedback(n,n===19?'Protocol VII complete. The last record is authorized.':'Finding accepted. The final index changes.',true);saveLocal();}catch(e){stage7Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stage7check]').forEach(b=>b.addEventListener('click',()=>solveStage7(Number(b.dataset.stage7check))));
+document.querySelectorAll('[data-stage7hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stage7hint);const level=Math.min((progress.stage7Hints[n]||0)+1,3);progress.stage7Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage7Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage7(){const count=progress.stage7Solved.length;document.getElementById('stage7Count').textContent=count+' / 3';document.getElementById('stage7Progress').style.width=(count/3*100)+'%';[17,18,19].forEach(n=>{if(progress.stage7Solved.includes(n)){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stage7check="${n}"]`).disabled=true;stage7Feedback(n,n===19?'Protocol VII complete. The last record is authorized.':'Finding accepted. The final index changes.',true);}});document.getElementById('stage8Nav').style.display=count===3?'flex':'none';renderStage8();}
+
+const stage8Hints={20:['The page is a container, but the line says what preserved the reply.','The archive is the durable place where testimony is kept.','One word: the collection of records itself.'],21:['The eighth entry has no identity or office. It is positioned beyond the account.','It stands outside the record, not inside it.','One word: the opposite of inside.'],22:['The archive is explicitly ruled out in the last line.','The answer is the person reading this page.','One word: the person who reads.']};
+function stage8Feedback(n,msg,good=false){const el=document.getElementById('feedback'+n);el.textContent=msg;el.classList.toggle('good',good)}
+async function solveStage8(n){const input=document.getElementById('answer'+n),button=document.querySelector(`[data-stage8check="${n}"]`);button.disabled=true;stage8Feedback(n,'Checking with the archive…');try{const correct=await verifyRemoteAnswer(n,input.value);if(!correct){stage8Feedback(n,'Finding not accepted. Reconsider who or what the evidence describes.');button.disabled=false;return;}if(!progress.stage8Solved.includes(n))progress.stage8Solved.push(n);input.disabled=true;document.getElementById('unlock'+n).classList.add('show');stage8Feedback(n,n===22?'Protocol VIII complete. The Eighth Testimony is available.':'Finding accepted. The observer ledger updates.',true);saveLocal();}catch(e){stage8Feedback(n,e.message);button.disabled=false;}}
+document.querySelectorAll('[data-stage8check]').forEach(b=>b.addEventListener('click',()=>solveStage8(Number(b.dataset.stage8check))));
+document.querySelectorAll('[data-stage8hint]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.stage8hint);const level=Math.min((progress.stage8Hints[n]||0)+1,3);progress.stage8Hints[n]=level;const el=document.getElementById('hint'+n);el.textContent='HINT '+level+': '+stage8Hints[n][level-1];el.classList.add('show');saveLocal();}));
+function renderStage8(){const count=progress.stage8Solved.length;document.getElementById('stage8Count').textContent=count+' / 3';document.getElementById('stage8Progress').style.width=(count/3*100)+'%';[20,21,22].forEach(n=>{if(progress.stage8Solved.includes(n)){document.getElementById('unlock'+n).classList.add('show');document.getElementById('answer'+n).disabled=true;document.querySelector(`[data-stage8check="${n}"]`).disabled=true;stage8Feedback(n,n===22?'Protocol VIII complete. The Eighth Testimony is available.':'Finding accepted. The observer ledger updates.',true);}});}
+let eighthTitleClicks=0;document.getElementById('eighthTitleSecret').addEventListener('click',()=>{eighthTitleClicks++;document.getElementById('eighthTitleFeedback').textContent='IMPRESSION '+eighthTitleClicks+' / 8';if(eighthTitleClicks>=8){document.getElementById('eighthTitleUnlock').classList.add('show');document.getElementById('eighthTitleFeedback').textContent='The eighth impression has been recorded.';}});
+let finalSealSequence=[];document.querySelectorAll('[data-final-seal]').forEach(b=>b.addEventListener('click',()=>{finalSealSequence.push(b.dataset.finalSeal);finalSealSequence=finalSealSequence.slice(-3);if(finalSealSequence.join('-')==='1-3-7'){document.getElementById('finalSealSecret').classList.add('show');document.getElementById('finalSealFeedback').textContent='Sequence accepted. The First Promise recovered.';}else{document.getElementById('finalSealFeedback').textContent='Seal recorded: '+finalSealSequence.join(' / ');}}));
+let indexFragmentSequence=[];document.querySelectorAll('[data-index-fragment]').forEach(b=>b.addEventListener('click',()=>{indexFragmentSequence.push(b.dataset.indexFragment);indexFragmentSequence=indexFragmentSequence.slice(-3);if(indexFragmentSequence.join('-')==='18-14-23'){document.getElementById('indexSequenceSecret').classList.add('show');document.getElementById('indexSequenceFeedback').textContent='Sequence accepted. Margin 018 recovered.';}else{document.getElementById('indexSequenceFeedback').textContent='Fragment recorded: '+indexFragmentSequence.join(' / ');}}));
+
+
+async function syncProgress(){if(!supabaseClient||!authUser)return;try{const {error}=await supabaseClient.from('player_progress').upsert({user_id:authUser.id,progress:progress,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;document.getElementById('syncStatus').textContent='SUPABASE SESSION / progress synchronized';}catch(e){document.getElementById('syncStatus').textContent='SUPABASE SESSION / sync unavailable — local progress remains saved';console.warn(e.message)}}
+async function initCloud(){const status=document.getElementById('syncStatus');if(!supabaseClient){status.textContent='LOCAL SESSION / Supabase library unavailable; local progress enabled';return;}try{let {data:{session}}=await supabaseClient.auth.getSession();if(!session){const {data,error}=await supabaseClient.auth.signInAnonymously();if(error)throw error;session=data.session;}authSession=session;authUser=session.user;supabaseClient.auth.onAuthStateChange((_event, nextSession)=>{authSession=nextSession;authUser=nextSession?.user||null;});const {data,error}=await supabaseClient.from('player_progress').select('progress').eq('user_id',authUser.id).maybeSingle();if(error)throw error;if(data&&data.progress){const cloud=data.progress;progress.solved=[...new Set([...(progress.solved||[]),...(cloud.solved||[])])].sort();progress.hints={...cloud.hints,...progress.hints};progress.stage3Solved=[...new Set([...(progress.stage3Solved||[]),...(cloud.stage3Solved||[])])].sort();progress.stage3Hints={...(cloud.stage3Hints||{}),...(progress.stage3Hints||{})};progress.stage4Solved=[...new Set([...(progress.stage4Solved||[]),...(cloud.stage4Solved||[])])].sort();progress.stage4Hints={...(cloud.stage4Hints||{}),...(progress.stage4Hints||{})};progress.stage5Solved=[...new Set([...(progress.stage5Solved||[]),...(cloud.stage5Solved||[])])].sort();progress.stage5Hints={...(cloud.stage5Hints||{}),...(progress.stage5Hints||{})};progress.stage6Solved=[...new Set([...(progress.stage6Solved||[]),...(cloud.stage6Solved||[])])].sort();progress.stage6Hints={...(cloud.stage6Hints||{}),...(progress.stage6Hints||{})};progress.stage7Solved=[...new Set([...(progress.stage7Solved||[]),...(cloud.stage7Solved||[])])].sort();progress.stage7Hints={...(cloud.stage7Hints||{}),...(progress.stage7Hints||{})};progress.stage8Solved=[...new Set([...(progress.stage8Solved||[]),...(cloud.stage8Solved||[])])].sort();progress.stage8Hints={...(cloud.stage8Hints||{}),...(progress.stage8Hints||{})};progress.ending=progress.ending||cloud.ending||null;}status.textContent='SUPABASE SESSION / anonymous player recognized';saveLocal();}catch(e){status.textContent='LOCAL SESSION / Supabase setup pending; local progress enabled';console.warn('Cloud sync not ready:',e.message)}}
+// Interactive archive shell. The filesystem is fictional and read-only.
+const terminalInput=document.getElementById('terminalInput');
+const terminalOutput=document.getElementById('terminalOutput');
+const terminalScreen=document.getElementById('terminalScreen');
+let termCwd='/'; let termHistory=[]; let termHistoryIndex=0;
+const termFiles={
+ '/discovery/obituary-index.txt':'DISCOVERY INDEX / PUBLIC COPY\nObituary extracts are filed by date, not by name. Several capital letters do not belong to their sentences. Read the dates in chronological order.\n\nMARGIN: The first record was written for someone who had not arrived yet.',
+ '/discovery/founding-fragment.txt':'FOUNDING FRAGMENT / ORDER OF THE FIRST SILENCE\nThe Seven separated from the First One and established boundaries. The Congregation was formed to preserve the account, not to command the boundaries.',
+ '/investigation/case-register.txt':'INVESTIGATION REGISTER / CASES 01–04\n01: Obituaries and the memory instruction.\n02: Testimony T-07 and the 1998 timestamp.\n03: Contradictory dates and the First One.\n04: Duplicate registry identity.\n\nThe first layer remains part of the archive. Later protocols do not supersede it.',
+ '/investigation/1998-timestamp.txt':'TIMESTAMP INDEX / 16 NOVEMBER 1998\nT-07 / TRANSCRIPT MARGIN\nThe seventh was never a place. The phrase describes a boundary, not a location.',
+ '/seventh-seal/remembrance.txt':'PROTOCOL VII / REMEMBRANCE\nA record survives because someone remembers it. Memory is not proof of truth; it is the means by which testimony remains available.',
+ '/seventh-seal/separation.txt':'PROTOCOL VII / SEPARATION\nThe seven boundaries were established to preserve distinction between the First One and the world that followed.',
+ '/seventh-seal/authority.txt':'PROTOCOL VII / AUTHORITY\nNo archive process is authorized to make the final choice for its reader.',
+ '/README.txt':'THE ETERNAL ARCHIVE\nA record of things that must not be forgotten.\n\nThis system stores recovered documents from the Congregation of the Last Dawn.\nSome records are incomplete. Some were altered. Do not assume either is accidental.',
+ '/archive/incident-1998.txt':'INCIDENT: 16 NOVEMBER 1998\nTwenty-three members disappeared within forty-eight hours.\nNo bodies were recovered. The official report remains incomplete.\n\nUNSIGNED ADDENDUM: The twenty-third has been returned. The twenty-fourth must never be found.',
+ '/archive/doc-07-1998.txt':'DOC-07-1998 / TRANSCRIPT ANNOTATION\n“The witness was not describing a room. They were describing the final boundary.”\n\n“The seventh was never a place.”',
+ '/archive/identity-record.txt':'SUCCESSION RECORD / DAMAGED COPY\nThe First Witness was a title. The title did not remain with the same person.\n\nSUCCESSION ERROR: identity mismatch detected.',
+ '/archive/photo-caption.txt':'IMG-1998-23\nCaption on reverse: “23 + 1 = 23”.\nThe archive counted identities, not bodies.',
+ '/doctrine/seven-witnesses.txt':'THE SEVEN WITNESSES\nI  THE BEGINNING — Creation\nII THE NAME — Identity\nIII THE WITNESS — Memory\nIV THE DIVIDE — Life and death\nV THE SILENCE — Absence\nVI THE RETURN — Time\nVII THE LAST DAWN — Existence\n\nSeven manifestations separated from the First One and established the boundaries of reality.',
+ '/system/maintenance.log':'1998-11-16  RESTORATION SUSPENDED\n2006-04-02  ACCESS ATTEMPT REJECTED\n2017-09-11  RECORD 24 MODIFIED / SOURCE UNKNOWN\n2026-11-16  RESTORATION PROTOCOL INITIATED\n2026-11-16  ADMINISTRATOR NOT AUTHORIZED',
+ '/system/outsider_history.dat':'INVESTIGATOR REGISTER\nPREVIOUS INVESTIGATORS: 017\nCURRENT INVESTIGATOR: 018\nSTATUS: ACTIVE\n\nNOTICE: You were not the first to find this archive. You were only the first to reach this record.',
+ '/forgotten/record-024.txt':'REGISTRY 024 / THE FIRST WITNESS\nThe First Witness was a title, not a single immortal office-holder. The original bearer died. A centuries-old impostor assumed the title and manipulated the Congregation during the 1998 incident.\nOBJECTIVE: Restore the First One by breaking the seven seals.',
+ '/forgotten/vey-final.txt':'ELIAS VEY / FINAL TESTIMONY\nI believed the First Witness was protecting us. I was wrong. The one wearing that title had been waiting longer than our order had existed. He did not want to lead the Congregation. He wanted us to finish what the seven began.',
+ '/root/final-instruction.txt':'To remember is to open.\nTo forget is to seal.\n\nChoose what deserves to remain.',
+ '/afterword/outsider-index.txt':'SEVENTEEN completed sessions preceded OUTSIDER 018. One of the seventeen index lines was a placeholder.',
+ '/afterword/eighth-witness.txt':'The archive held the records of the seven and watched the space between them. MARGINAL DESIGNATION: EIGHTH WITNESS.',
+ '/afterword/final-memo.txt':'The seven built the boundaries. The archive kept their memory. The outsiders gave the archive a reason to remain. We were never the key. We were the lock.',
+ '/unwritten/collective-author.txt':'AUTHOR FIELD: COLLECTIVE / THE OUTSIDERS. Every session left a line; every line made the next one possible.',
+ '/unwritten/blank-page.txt':'The archive preserves what happened. It cannot store what may still become. FIELD: FUTURE.',
+ '/unwritten/final-instruction.txt':'Do not restore the First One. Do not erase the seven. Do not close the record. Let the next page remain UNWRITTEN.',
+ '/unfiled/margin-02.txt':'MARGIN 02 / E.V.\nThe archive was built to remember the boundaries, not the thing they contain.\nA boundary without a witness becomes a door.',
+ '/unfiled/negative-space.txt':'NEGATIVE SPACE / PHOTOGRAPH NOTE\nThe empty space between figures was measured twice. The second measurement included the photographer.',
+ '/unfiled/return-address.txt':'RETURN ADDRESS / UNSENT\nTO: THE NEXT READER\nFROM: THE LAST PERSON WHO THOUGHT THEY WERE ALONE',
+ '/living-index/quiet-administrator.log':'03:17:01 ADMINISTRATOR: [EMPTY]\n03:17:02 AUTHORITY SOURCE: PRIOR ACTION\n03:17:03 PROCESS OWNER: NONE\n03:17:04 EXECUTION: CONTINUED',
+ '/living-index/borrowed-memory.txt':'OUTSIDER 003 kept a sentence they did not write. OUTSIDER 007 carried a name they had never heard. OUTSIDER 012 remembered a door they had never seen. The subsequent reader carries the record forward.',
+ '/living-index/permission-policy.txt':'READ: GRANTED\nCOMPARE: GRANTED\nANNOTATE: CONDITIONAL\nALTER PERSONAL MEMORY: NOT AUTHORIZED\nREQUIRED: EXPLICIT READER AUTHORIZATION',
+ '/eighth-witness/three-copies.txt':'COPY A: The testimony was kept.\nCOPY B: The testimony was kept?\nCOPY C: The testimony was kept—\nA reply was annotated after the authors were gone.\nThe archive holds the testimony. The reader makes the reply meaningful.',
+ '/eighth-witness/uncounted-entry.txt':'ENTRY VIII\nPOSITION: OUTSIDE THE RECORD\nSTATUS: PRESENT ONLY WHEN TESTIMONY IS RECEIVED\nThe eighth witness stands outside the account.',
+ '/eighth-witness/receiving-name.txt':'The archive is not the Eighth Witness.\nThe reader receives, understands, and carries the testimony.',
+ '/eighth-witness/eighth-testimony.txt':'Seven made the boundary. The archive kept the account. You received it.\nA record can outlive its author. A witness can outlive the record.'
+};
+const termDirs={'/discovery/':['obituary-index.txt','founding-fragment.txt'],'/investigation/':['case-register.txt','1998-timestamp.txt'],'/seventh-seal/':['remembrance.txt','separation.txt','authority.txt'],'/':['discovery/','investigation/','archive/','doctrine/','system/','forgotten/','root/','afterword/','unwritten/','living-index/','seventh-seal/','eighth-witness/','README.txt'],'/archive/':['incident-1998.txt','doc-07-1998.txt','identity-record.txt','photo-caption.txt'],'/doctrine/':['seven-witnesses.txt'],'/system/':['maintenance.log','outsider_history.dat'],'/forgotten/':['record-024.txt','vey-final.txt'],'/root/':['final-instruction.txt'],'/afterword/':['outsider-index.txt','eighth-witness.txt','final-memo.txt'],'/unwritten/':['collective-author.txt','blank-page.txt','final-instruction.txt'],'/unfiled/':['margin-02.txt','negative-space.txt','return-address.txt'],'/living-index/':['quiet-administrator.log','borrowed-memory.txt','permission-policy.txt'],'/eighth-witness/':['three-copies.txt','uncounted-entry.txt','receiving-name.txt','eighth-testimony.txt']};
+function termPrint(text,cls=''){const line=document.createElement('div');line.className=cls;line.textContent=text;terminalOutput.appendChild(line);terminalScreen.scrollTop=terminalScreen.scrollHeight;}
+function termPrompt(){document.getElementById('termPrompt').textContent='outsider@archive:'+termCwd+'$';document.getElementById('termPath').textContent=termCwd;}
+function termPathUnlocked(path){const p=path.toLowerCase();if(p.startsWith('/forgotten/')||p==='/forgotten/')return progress.stage3Solved.length===3;if(p.startsWith('/root/')||p==='/root/')return progress.stage3Solved.length===3;if(p.startsWith('/afterword/')||p==='/afterword/')return !!progress.ending;if(p.startsWith('/unwritten/')||p==='/unwritten/')return progress.stage4Solved.length===3;if(p.startsWith('/living-index/')||p==='/living-index/')return progress.stage5Solved.length===3;if(p.startsWith('/seventh-seal/')||p==='/seventh-seal/')return progress.stage6Solved.length===3;if(p.startsWith('/eighth-witness/')||p==='/eighth-witness/')return progress.stage7Solved.length===3;return true;}
+function termResolve(path){if(!path||path==='.')return termCwd;if(path==='~')return '/';let p=path.startsWith('/')?path:termCwd+path;let parts=[];for(const bit of p.split('/')){if(!bit||bit==='.')continue;if(bit==='..')parts.pop();else parts.push(bit);}return '/'+parts.join('/')+(p.endsWith('/')&&parts.length?'/':'');}
+function termRun(raw){const input=raw.trim();if(!input)return;termPrint('outsider@archive:'+termCwd+'$ '+input,'term-dim');termHistory.push(input);termHistoryIndex=termHistory.length;
+if(progress.solved.length<4){termPrint('ACCESS DENIED — FOUR INVESTIGATION FINDINGS REQUIRED.','term-error');return;}
+const parts=input.match(/"[^\"]*"|'[^']*'|\S+/g)||[];const cmd=(parts.shift()||'').toLowerCase();const arg=parts.join(' ').replace(/^['"]|['"]$/g,'');
+const files=Object.keys(termFiles);let result='';
+switch(cmd){
+case 'help':case '?':result='AVAILABLE COMMANDS\n  help                 show this guide\n  ls [path]            list directory contents\n  cd [path]            change directory\n  pwd                  print current directory\n  cat <file>           read a recovered file\n  find <word>          search filenames and file contents\n  grep <word> <file>   search within a file\n  whoami               identify this session\n  status               show restoration status\n  history              show recent commands\n  clear                clear the terminal screen\n  date                 show archive system date\n  remember             inspect memory protocol\n  witness              inspect witness succession\n  listen               recover a deleted audio margin\n  mirror               inspect archive reflection\n  unfiled              list uncatalogued notes\n  open discovery       revisit Protocol I / original records\n  open investigation   revisit Protocol II / first four cases\n  open forgotten       open the recovered Record 24 dossier\n  open root            open the final protocol\n  open afterword       open the post-ending records\n  open unwritten       open Protocol V (afterword required)\n  open living-index    open Protocol VI (Protocol V required)\n  open seventh-seal   revisit Protocol VII records\n  open eighth-witness open Protocol VIII (Protocol VII required)\n  trace                inspect the living index margin\n  exit                 close the current shell session\n\nTIP: Try `ls`, then `cd archive`, then `cat incident-1998.txt`.';break;
+case 'ls':case 'dir':{const path=termResolve(arg||termCwd);const key=path.endsWith('/')?path:path+'/';if(!termPathUnlocked(key))result='ACCESS DENIED — this directory remains sealed until the preceding protocol is complete.';else if(termDirs[key])result=termDirs[key].join('    ');else if(termFiles[path])result=path.split('/').pop();else result='ls: cannot access '+path+': no such directory';break;}
+case 'pwd':result=termCwd;break;
+case 'cd':{const dest=termResolve(arg||'/');const key=dest==='/'?'/':dest.replace(/\/$/,'')+'/';if(!termPathUnlocked(key))result='ACCESS DENIED — complete the preceding protocol first.';else if(termDirs[key]){termCwd=key;termPrompt();result='';}else result='cd: no such directory: '+(arg||'/');break;}
+case 'cat':{const path=termResolve(arg);if(!termPathUnlocked(path))result='ACCESS DENIED — complete the preceding protocol first.';else if(termFiles[path])result=termFiles[path];else result='cat: '+(arg||'missing filename')+': file not found';break;}
+case 'find':{if(!arg){result='usage: find <word>';break;}const q=arg.toLowerCase();const matches=files.filter(f=>termPathUnlocked(f)&& (f.toLowerCase().includes(q)||termFiles[f].toLowerCase().includes(q)));result=matches.length?matches.join('\n'):'No matching records.';break;}
+case 'grep':{const bits=arg.split(/\s+/);const file=bits.pop();const q=bits.join(' ').toLowerCase();const path=termResolve(file);if(!q||!termFiles[path])result='usage: grep <word> <file>';else if(!termPathUnlocked(path))result='ACCESS DENIED — complete the preceding protocol first.';else result=termFiles[path].split('\n').filter(line=>line.toLowerCase().includes(q)).join('\n')||'No matching lines.';break;}
+case 'whoami':result='USER: OUTSIDER\nSESSION: 018\nAUTHORIZATION: TEMPORARY\nROLE: INVESTIGATOR';break;
+case 'status':result='ARCHIVE: COMPROMISED\nRESTORATION: ACTIVE\nPROTOCOL I / DISCOVERY: AVAILABLE\nPROTOCOL II / INVESTIGATION: '+progress.solved.length+'/4\nPROTOCOL III / FORGOTTEN: '+progress.stage3Solved.length+'/3\nPROTOCOL IV / AFTER THE DAWN: '+progress.stage4Solved.length+'/3\nPROTOCOL V / UNWRITTEN: '+progress.stage5Solved.length+'/3\nPROTOCOL VI / LIVING INDEX: '+progress.stage6Solved.length+'/3\nPROTOCOL VII / SEVENTH SEAL: '+progress.stage7Solved.length+'/3\nPROTOCOL VIII / EIGHTH WITNESS: '+progress.stage8Solved.length+'/3\nFINAL CHOICE: '+(progress.ending||'PENDING')+'\nSESSION: OUTSIDER / 018\nNOTEBOOK: LOCAL DEVICE';break;
+case 'history':result=termHistory.map((x,i)=>(i+1)+'  '+x).join('\n');break;
+case 'clear':terminalOutput.textContent='';break;
+case 'date':result='ARCHIVE CLOCK: 16 NOV 2026\nCLOCK INTEGRITY: UNVERIFIED';break;
+case 'remember':result='MEMORY PROTOCOL\nA name is a door. A remembered face is a summons.\nLet the record be unmade, and the seeker shall pass by.';break;
+case 'witness':result='SUCCESSION ERROR\nFIRST WITNESS IDENTITY DOES NOT MATCH THE FOUNDING REGISTER.\n\nThe title survived. The original bearer did not.';break;
+case 'trace-seven':result='PROTOCOL VII TRACE / READ-ONLY\nCASE 17: REMEMBRANCE\nCASE 18: SEPARATION\nCASE 19: AUTHORITY RESERVED TO THE READER.\nThe trace describes the findings, not their validation.';break;
+case 'seventh-seal':result='THE LAST BOUNDARY\nThe seven seals preserve distinction.\nNo archive process may choose for its reader.';break;
+case 'trace':result='SECOND REGISTER / READ-ONLY\n17 PREVIOUS OBSERVER RECORDS FOUND.\n1 ENTRY MARKED UNRESOLVED.\nLIVING INDEX TRACE: 18 -> 14 -> 23\nThe sequence is a reader, an office, and a duplicate entry.';break;
+case 'observer':result='OBSERVER COUNT: 018\nPREVIOUS OBSERVERS: 017\nCURRENT RECORD: ACTIVE\nThis number is not a password.';break;
+case 'listen':result='RECOVERED AUDIO MARGIN / CHANNEL 0\n[00:00:04] — Do not count the doors.\n[00:00:09] — Count what passes through them.\n[00:00:16] — The archive has no voice when nobody remembers it.';break;
+case 'mirror':result='REFLECTION TEST / READ ONLY\nThe registry lists 23 identities.\nThe observer ledger lists 18 readers.\nNeither number describes the same population.\nA mirror does not create a second person.';break;
+case 'unfiled':result='/unfiled/margin-02.txt\n/unfiled/negative-space.txt\n/unfiled/return-address.txt\nThree notes are not indexed in the public directory.';break;
+case 'open':{const target=(arg||'').toLowerCase();if(target==='discovery'){showPage('archive');result='PROTOCOL I / ORIGINAL ARCHIVE RECORDS OPENED.';}else if(target==='investigation'){showPage('investigation');result='PROTOCOL II / INVESTIGATION RECORDS OPENED.';}else if(target==='seventh-seal'&&progress.stage6Solved.length===3){showPage('stage7');result='PROTOCOL VII RECORDS OPENED.';}else if(target==='forgotten'&&progress.stage3Solved.length===3){showPage('forgotten');result='DIRECTORY OPENED: /forgotten';}else if(target==='root'&&progress.stage3Solved.length===3){showPage('root');result='ROOT DIRECTORY OPENED.';}else if(target==='afterword'&&progress.ending){showPage('stage4');result='AFTERWORD DIRECTORY OPENED.';}else if(target==='unwritten'&&progress.stage4Solved.length===3){showPage('stage5');result='PROTOCOL V DIRECTORY OPENED.';}else if(target==='living-index'&&progress.stage5Solved.length===3){showPage('stage6');result='PROTOCOL VI DIRECTORY OPENED.';}else if(target==='seventh-seal'&&progress.stage6Solved.length===3){showPage('stage7');result='PROTOCOL VII DIRECTORY OPENED.';}else if(target==='final-record'&&progress.stage7Solved.length===3){showPage('finalRecord');result='FINAL RECORD OPENED.';}else if(target==='eighth-witness'&&progress.stage7Solved.length===3){showPage('stage8');result='PROTOCOL VIII DIRECTORY OPENED.';}else if(target==='eighth-testimony'&&progress.stage8Solved.length===3){showPage('eighthEpilogue');result='EIGHTH TESTIMONY OPENED.';}else result='ACCESS DENIED — complete the preceding protocol first.';break;}
+case 'exit':result='SESSION REMAINS OPEN. The archive has not released your identity.';break;
+default:result='command not found: '+cmd+'\nType `help` to list available commands.';
+}
+if(result)termPrint(result,cmd==='find'&&result==='No matching records.'?'term-warn':'');terminalScreen.scrollTop=terminalScreen.scrollHeight;}
+function runTerminal(){const value=terminalInput.value;terminalInput.value='';termRun(value);}
+terminalInput.addEventListener('keydown',e=>{if(e.key==='Enter'){runTerminal();}else if(e.key==='ArrowUp'){e.preventDefault();termHistoryIndex=Math.max(0,termHistoryIndex-1);terminalInput.value=termHistory[termHistoryIndex]||'';}else if(e.key==='ArrowDown'){e.preventDefault();termHistoryIndex=Math.min(termHistory.length,termHistoryIndex+1);terminalInput.value=termHistory[termHistoryIndex]||'';}});
+document.querySelectorAll('[data-term]').forEach(b=>b.addEventListener('click',()=>{terminalInput.value=b.dataset.term;runTerminal();terminalInput.focus();}));
+document.getElementById('terminalScreen').addEventListener('click',()=>terminalInput.focus());
+termPrompt();
+renderProgress();renderStage3();initCloud();
+
+console.info('[PROTOCOL VIII / EIGHTH WITNESS] The archive can store testimony. It cannot receive it for you.');
+console.warn('[MARGIN VIII] The eighth entry has no name because it is a position, not an identity.');
+/* ARCHIVE SOURCE NOTE: The second register is keyed to the reader, not to the person named in the record. */
+(function initBrowserClues(){
+  const clueState={sequence:'',target:'ARCHIVE',revealed:false};
+  const secretPanel=document.getElementById('observerSecret');
+  const revealObserverRecord=()=>{
+    if(clueState.revealed)return;
+    clueState.revealed=true;
+    secretPanel?.classList.add('revealed');
+    document.title='18 / The Archive Has Counted You';
+    try{sessionStorage.setItem('ea_observer_signal','record-018-read');}catch(_e){}
+    console.info('%c[SECOND REGISTER ACCESSED]','color:#b77a70;font-weight:bold');
+    console.info('observer_count: 18 | previous_observers: 17');
+    console.info('The archive counts readers, not visits. The missing record is not a missing person.');
+  };
+  // Inspect Element clue: harmless metadata only. No answer keys or unlock flags are stored here.
+  document.documentElement.dataset.archiveObserver='18';
+  document.documentElement.dataset.archiveMargin='The first register counts names. The second counts readers.';
+  document.querySelectorAll('[data-page]').forEach((el,i)=>{if(!el.dataset.archiveIndex)el.dataset.archiveIndex=String(i).padStart(2,'0');});
+  try{
+    localStorage.setItem('ea_public_index_revision','0.7.0');
+    localStorage.setItem('ea_observer_record','018');
+  }catch(_e){}
+  const logWelcome=()=>{
+    console.groupCollapsed('%c[ARCHIVE SYSTEM INITIALIZED]','color:#9eaf91;font-family:monospace');
+    console.log('Welcome, investigator.');
+    console.log('Your session has been recorded.');
+    console.log('There are 23 registered identities.');
+    console.warn('There should only be 22.');
+    console.log('Do not ask the archive about the missing name.');
+    console.log('— E.V.');
+    console.info('A command is available: ArchiveConsole.help()');
+    console.groupEnd();
+  };
+  window.ArchiveConsole=Object.freeze({
+    help(){console.table([{command:'ArchiveConsole.status()',purpose:'Read public archive status'},{command:'ArchiveConsole.trace()',purpose:'Read the observer breadcrumb'},{command:'ArchiveConsole.help()',purpose:'List these commands'}]);},
+    status(){return {archive:'COMPROMISED',restoration:'ACTIVE',registered_identities:23,observer_record:18,answer_validation:'SERVER-SIDE'};},
+    trace(){console.warn('[TRACE / SECOND REGISTER]');console.log('17 previous observer records found. One entry is marked UNRESOLVED.');console.log('The archive remembers the order in which it was read.');return 'TRACE COMPLETE';}
+  });
+  window.SeventhSeal=Object.freeze({help(){console.table([{command:'SeventhSeal.status()',purpose:'Read public Protocol VII state'},{command:'SeventhSeal.boundary()',purpose:'Read the final boundary principle'}]);},status(){return {protocol:'VII',stage:'THE LAST BOUNDARY',answer_validation:'SERVER-SIDE'};},boundary(){console.info('The seven seals preserve separation. The reader retains the final authority.');return 'THE READER DECIDES';}});
+  window.LivingIndex=Object.freeze({help(){console.table([{command:'LivingIndex.status()',purpose:'Read the public Protocol VI state'},{command:'LivingIndex.rule()',purpose:'Read the memory permission rule'}]);},status(){return {protocol:'VI',stage:'SELF-INDEXING',answer_validation:'SERVER-SIDE'};},rule(){console.info('A record may preserve a memory. It may not rewrite one without explicit permission.');return 'THE READER MUST CHOOSE FIRST';}});
+  document.addEventListener('keydown',e=>{
+    if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='u'){e.preventDefault();revealObserverRecord();return;}
+    if(e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey){clueState.sequence=(clueState.sequence+e.key.toUpperCase()).slice(-clueState.target.length);if(clueState.sequence===clueState.target)revealObserverRecord();}
+  });
+  // Console clue evolves after the player reaches the later records; it never reveals puzzle solutions.
+  setTimeout(()=>{
+    logWelcome();
+    if((progress.stage5Solved||[]).length===3){console.warn('[WARNING] PROTOCOL V COMPLETE / THE NEXT PAGE IS NOT IN THE INDEX.');}
+    else if((progress.stage4Solved||[]).length===3){console.warn('[WARNING] UNAUTHORIZED OBSERVER DETECTED');console.log('observer_count: 18');console.log('previous_observers: 17');console.log('This is not your first visit.');}
+  },250);
+})();
+
+/* THE MARGINALIA INDEX — optional click discoveries. These reveal lore, never answer keys. */
+(function initClickSecrets(){
+  const overlay=document.getElementById('archiveSecretOverlay');
+  const title=document.getElementById('secretTitle');
+  const body=document.getElementById('secretBody');
+  const stamp=document.getElementById('secretStamp');
+  const close=document.getElementById('closeArchiveSecret');
+  const discovered=new Set();
+  const sealSequence=[];
+  const documentSequence=[];
+  const show=(id,heading,message,label='UNINDEXED MARGINALIA')=>{
+    if(!overlay)return;
+    title.textContent=heading;body.textContent=message;stamp.textContent=label;
+    overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');
+    try{localStorage.setItem('ea_marginalia_'+id,'read');}catch(_e){}
+    discovered.add(id);
+    console.info('[MARGINALIA READ] '+id);
+  };
+  const hide=()=>{overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true')};
+  close?.addEventListener('click',hide);
+  overlay?.addEventListener('click',e=>{if(e.target===overlay)hide()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay?.classList.contains('open'))hide()});
+
+  // Seven deliberate clicks on the title echo the seven original boundaries.
+  let titleClicks=0, titleTimer=null;
+  document.getElementById('archiveTitle')?.addEventListener('click',()=>{
+    titleClicks++;clearTimeout(titleTimer);titleTimer=setTimeout(()=>titleClicks=0,2600);
+    if(titleClicks===7){titleClicks=0;show('title-seven','THE SEVENTH IMPRESSION','A note was found beneath the title block.\n\n“Seven boundaries were made to keep the First One from being remembered. The archive was made to remember the boundaries.”\n\n— E.V. / handwritten on the reverse of the index plate','TITLE BLOCK / IMPRESSION 07');}
+  });
+
+  // The second and fifth and seventh seals form a sequence, not a password.
+  document.querySelectorAll('[data-seal]').forEach(el=>el.addEventListener('click',()=>{
+    const v=el.dataset.seal;sealSequence.push(v);if(sealSequence.length>3)sealSequence.shift();
+    if(sealSequence.join('-')==='II-V-VII'){
+      sealSequence.length=0;show('seal-margin','THE SPACE BETWEEN','NAME. SILENCE. EXISTENCE.\n\nThe surviving margin does not describe three places. It describes three conditions required for a thing to be remembered: it must be distinguished, it must survive absence, and it must be allowed to exist beyond its witness.\n\nA later hand added: “There was always a space between the seven.”','DOCTRINE / MARGINAL ORDER');
+    }
+  }));
+
+  // Reading three archive records in a particular order exposes a note on the reverse.
+  document.querySelectorAll('[data-secret-doc]').forEach(el=>el.addEventListener('click',()=>{
+    documentSequence.push(el.dataset.secretDoc);if(documentSequence.length>3)documentSequence.shift();
+    if(documentSequence.join('-')==='incident-photograph-seal'){
+      documentSequence.length=0;show('reverse-index','THE REVERSE OF THE INDEX','The three documents were filed together in the original catalogue. Their order was later changed.\n\nThe incident counts missing members. The photograph counts visible figures. The seal memorandum counts boundaries.\n\nThe missing item is not a twenty-fourth body. It is the identity that made the arithmetic possible.','ARCHIVE INDEX / RECONSTRUCTED');
+    }
+  }));
+
+  // Registry pair: open record 01, then record 23. Both are generated as buttons.
+  let firstProfileSeen=false;
+  const members=document.getElementById('members');
+  const bindProfiles=()=>members?.querySelectorAll('.member').forEach((el,i)=>{
+    if(el.dataset.secretProfileBound)return;el.dataset.secretProfileBound='1';
+    el.addEventListener('click',()=>{
+      if(i===0){firstProfileSeen=true;return;}
+      if(i===22&&firstProfileSeen){firstProfileSeen=false;show('duplicate-profile','ONE HAND / TWO ENTRIES','The first entry was not copied from the twenty-third. Both entries were written by the same hand, on paper from the same batch.\n\nA clerk added: “Do not merge the records. The duplicate is evidence that the registry counts titles and identities differently.”','PERSONNEL / DUPLICATE CUSTODY');}
+    });
+  });
+  bindProfiles();
+  if(members)new MutationObserver(bindProfiles).observe(members,{childList:true});
+
+  // Click the missing-record tile four times to reveal an old system note.
+  let tileClicks=0;
+  document.getElementById('missingRecordTile')?.addEventListener('click',()=>{
+    tileClicks++;if(tileClicks===4){tileClicks=0;show('missing-tile','THE EMPTY SLOT','The removed record left a physical gap in the index. The gap is older than the 1998 incident.\n\nMaintenance note: “The blank was present before the page was written.”','MAINTENANCE / PRE-EXISTING ABSENCE');}
+  });
+
+  // The build stamp is clickable; the repeated action feels like checking a damaged print mark.
+  let stampClicks=0;
+  document.getElementById('buildStamp')?.addEventListener('click',()=>{
+    stampClicks++;if(stampClicks===5){stampClicks=0;show('footer-stamp','THE PRINTER’S FIFTH COPY','Copy 1: public index.\nCopy 2: restricted index.\nCopy 3: investigator record.\nCopy 4: administrator record.\nCopy 5: the copy that was never printed.\n\nThe fifth copy has no page number because it was made for the reader, not the archive.','FOOTER / PRINT CONTROL');}
+  });
+
+  // A normal click on the redacted maintenance word exposes only the note behind the redaction.
+  document.querySelectorAll('.redacted').forEach(el=>{
+    el.title='The redaction is not a lock. It is a fold.';
+    el.style.cursor='help';
+    el.addEventListener('click',()=>show('redaction-fold','THE FOLD IN THE PAGE','The original line did not say UNKNOWN. It said: “Source: the archive itself.”\n\nThe redaction was applied after the report had been signed.','MAINTENANCE / REDACTION REVISION'));
+  });
+
+  // Publicly readable progress only; no unlock state or answer key is written here.
+  window.ArchiveMarginalia=Object.freeze({
+    read(){return [...discovered];},
+    index(){return ['title-seven','seal-margin','reverse-index','duplicate-profile','missing-tile','footer-stamp','redaction-fold'];}
+  });
+})();
+
+
+/* FIELD NOTES / LOCAL INVESTIGATOR NOTEBOOK
+   This module is deliberately separate so the notebook remains independently testable. */
+(function initFieldNotes(){
+  const toggle=document.getElementById('notebookToggle');
+  const panel=document.getElementById('notebookPanel');
+  const close=document.getElementById('notebookClose');
+  const textArea=document.getElementById('notebookText');
+  const canvas=document.getElementById('notebookCanvas');
+  const status=document.getElementById('notebookStatus');
+  if(!toggle||!panel||!textArea||!canvas){console.error('[FIELD NOTES] Required notebook elements are missing.');return;}
+  const STORE='ea_field_notes_v1';
+  let saved={text:'',drawing:''};
+  try{saved={...saved,...JSON.parse(localStorage.getItem(STORE)||'{}')};}catch(_e){}
+  textArea.value=saved.text||'';
+  const ctx=canvas.getContext('2d');
+  let drawing=false,erasing=false,last=null,dirty=false;
+  const setStatus=(message='SAVED LOCALLY')=>{if(status)status.textContent=message;};
+  function resizeCanvas(restore=true){
+    const previous=restore&&canvas.dataset.ready==='1'?canvas.toDataURL('image/png'):saved.drawing;
+    const rect=canvas.getBoundingClientRect();
+    const ratio=Math.max(1,window.devicePixelRatio||1);
+    canvas.width=Math.max(1,Math.round(rect.width*ratio));
+    canvas.height=Math.max(1,Math.round(rect.height*ratio));
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+    canvas.dataset.ready='1';
+    ctx.fillStyle='#090b0c';ctx.fillRect(0,0,rect.width,rect.height);
+    if(previous){const img=new Image();img.onload=()=>{ctx.drawImage(img,0,0,rect.width,rect.height);};img.src=previous;}
+  }
+  function persist(){
+    try{saved.text=textArea.value;saved.drawing=canvas.toDataURL('image/png');localStorage.setItem(STORE,JSON.stringify(saved));setStatus('SAVED LOCALLY');dirty=false;}
+    catch(e){setStatus('STORAGE FULL — EXPORT NOTES');console.warn('[FIELD NOTES] Local save unavailable',e);}
+  }
+  function open(){panel.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.classList.add('active');requestAnimationFrame(()=>{resizeCanvas(true);});setStatus('NOTEBOOK OPEN');}
+  function hide(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.classList.remove('active');toggle.focus({preventScroll:true});}
+  toggle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();panel.hidden?open():hide();});
+  close?.addEventListener('click',hide);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)hide();});
+  document.querySelectorAll('[data-notebook-tab]').forEach(tab=>tab.addEventListener('click',()=>{
+    const draw=tab.dataset.notebookTab==='draw';
+    document.getElementById('notebookWrite').hidden=draw;
+    document.getElementById('notebookDraw').hidden=!draw;
+    document.querySelectorAll('[data-notebook-tab]').forEach(t=>t.classList.toggle('active',t===tab));
+    if(draw)requestAnimationFrame(()=>resizeCanvas(true));
+  }));
+  textArea.addEventListener('input',()=>{setStatus('UNSAVED CHANGES');clearTimeout(textArea._saveTimer);textArea._saveTimer=setTimeout(persist,450);});
+  const point=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+  canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;last=point(e);canvas.setPointerCapture?.(e.pointerId);ctx.beginPath();ctx.arc(last.x,last.y,Math.max(1,Number(document.getElementById('notebookSize').value)/2),0,Math.PI*2);ctx.fillStyle=erasing?'#090b0c':document.getElementById('notebookColor').value;ctx.fill();setStatus('DRAWING…');});
+  canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.lineWidth=Number(document.getElementById('notebookSize').value);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=erasing?'#090b0c':document.getElementById('notebookColor').value;ctx.stroke();last=p;});
+  const stopDrawing=()=>{if(!drawing)return;drawing=false;last=null;persist();};
+  canvas.addEventListener('pointerup',stopDrawing);canvas.addEventListener('pointercancel',stopDrawing);canvas.addEventListener('lostpointercapture',stopDrawing);
+  document.getElementById('notebookEraser')?.addEventListener('click',e=>{erasing=!erasing;e.currentTarget.classList.toggle('active',erasing);e.currentTarget.textContent=erasing?'ERASER ON':'ERASER';});
+  document.getElementById('notebookClear')?.addEventListener('click',()=>{const r=canvas.getBoundingClientRect();ctx.fillStyle='#090b0c';ctx.fillRect(0,0,r.width,r.height);persist();});
+  document.getElementById('notebookSave')?.addEventListener('click',persist);
+  document.getElementById('notebookExport')?.addEventListener('click',()=>{
+    persist();const download=(blob,name)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    download(new Blob([textArea.value],{type:'text/plain;charset=utf-8'}),'eternal-archive-field-notes.txt');
+    canvas.toBlob(blob=>{if(blob)download(blob,'eternal-archive-field-sketch.png');},'image/png');setStatus('EXPORTED TXT + PNG');
+  });
+  window.addEventListener('resize',()=>{if(!panel.hidden)resizeCanvas(true);});
+  // Keep the drawing layer initialized after the panel has a measurable size.
+  if(!panel.hidden)resizeCanvas(false);
+  console.info('%c[FIELD NOTES]','color:#c17b70;font-weight:bold','Local notebook module ready. Click FIELD NOTES to open.');
+})();
+
+/* INSPECTOR / CONSOLE CLUE INDEX — clues are lore, never answer keys. */
+console.groupCollapsed('%c[HOW TO READ THE MARGINS]','color:#c7ad83;font-weight:bold;font-family:monospace');
+console.info('Inspect Element: search for comments containing MARGIN, INSPECTOR NOTE, or FIELD NOTES CONTROL.');
+console.info('Inspect Element: inspect elements carrying data-archive-* attributes.');
+console.info('Console: try ArchiveConsole.help(), ArchiveConsole.status(), and ArchiveConsole.trace().');
+console.info('These clues reveal story context only. Puzzle answers and validation remain server-side.');
+console.groupEnd();
