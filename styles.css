@@ -157,3 +157,8 @@ body.notebook-is-open{overflow:auto}
  .notebook-rich-toolbar span{display:none}
 }
 @media(max-width:390px){.notebook-head strong{font-size:17px}.notebook-rich-toolbar button{min-width:28px;padding:4px 6px;font-size:8px}}
+
+
+/* PROTOCOL IX / THE LAST KEEPER */
+#stage9 .transcript p{line-height:1.75}#stage9 .puzzle{scroll-margin-top:24px}#keeperEpilogue .restricted-file{border-left:2px solid var(--accent,#70433d)}
+@media(max-width:640px){#stage9 .stats{grid-template-columns:1fr 1fr}#stage9 .stats .stat:first-child{grid-column:1/-1}}
