@@ -107,3 +107,13 @@ html{scrollbar-gutter:stable}
 .archive-notebook{position:fixed;right:22px;bottom:20px;z-index:1800}
 body.notebook-is-open{overflow:hidden}
 @media(max-width:600px){.archive-notebook{right:12px;bottom:12px}}
+
+
+/* BUILD 0.8.6 — NON-MODAL FLOATING FIELD NOTES */
+.archive-notebook.notebook-open:before{display:none!important;content:none!important}
+.notebook-panel{position:fixed;left:auto;top:auto;right:22px;bottom:76px;transform:none;width:min(620px,calc(100vw - 32px));height:min(680px,calc(100dvh - 112px));max-height:calc(100dvh - 112px);z-index:1801;border-radius:2px;box-shadow:0 18px 65px #000c}
+.notebook-head{cursor:grab;user-select:none;touch-action:none}
+.notebook-head.is-dragging{cursor:grabbing}
+.notebook-close{cursor:pointer;touch-action:manipulation}
+body.notebook-is-open{overflow:auto}
+@media(max-width:600px){.archive-notebook.notebook-open:before{display:none!important}.notebook-panel{left:auto;top:auto;right:10px;bottom:68px;transform:none;width:calc(100vw - 20px);height:min(72dvh,620px);max-height:calc(100dvh - 82px);padding:12px}.notebook-head{cursor:default;touch-action:auto}}
