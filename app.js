@@ -394,3 +394,28 @@ console.info('These clues reveal story context only. Puzzle answers and validati
 console.info('%c[PROTOCOL IX / THE LAST KEEPER]','color:#c17b70;font-weight:bold','The original charter is older than the office that claims to interpret it. Terminal: try keeper.');
 window.LastKeeper=Object.freeze({help(){console.table([{command:'LastKeeper.charter()',purpose:'Read the original office rule'},{command:'LastKeeper.status()',purpose:'Read public protocol status'}]);},charter(){return 'CARRY TESTIMONY. NEVER POSSESS IT.';},status(){return {protocol:'IX',office:'RELINQUISHED AFTER RECEIPT',answer_validation:'SERVER-SIDE'};}});
 console.groupEnd();
+
+
+/* FIELD LAB — optional player-facing decoding tools; no external service required. */
+(()=>{
+ const decodeMorse=source=>{
+  const map={'.-':'A','-...':'B','-.-.':'C','-..':'D','.':'E','..-.':'F','--.':'G','....':'H','..':'I','.---':'J','-.-':'K','.-..':'L','--':'M','-.':'N','---':'O','.--.':'P','--.-':'Q','.-.':'R','...':'S','-':'T','..-':'U','...-':'V','.--':'W','-..-':'X','-.--':'Y','--..':'Z','-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
+  return source.trim().split(/\s*\/\s*/).map(word=>word.trim().split(/\s+/).map(code=>map[code]||'�').join('')).join(' ');
+ };
+ const decoders={
+  base64:()=>{const s=document.getElementById('labBase64').textContent.trim();return decodeURIComponent(escape(atob(s)));},
+  morse:()=>decodeMorse(document.getElementById('labMorse').textContent),
+  caesar:()=>document.getElementById('labCaesar').textContent.replace(/[a-z]/gi,c=>String.fromCharCode((c.charCodeAt(0)-(c>='a'&&c<='z'?97:65)-3+26)%26+(c>='a'&&c<='z'?97:65)))
+ };
+ document.querySelectorAll('[data-decode]').forEach(btn=>btn.addEventListener('click',()=>{
+  const kind=btn.dataset.decode,el=document.getElementById('labResult'+kind[0].toUpperCase()+kind.slice(1));
+  try{el.textContent=decoders[kind]();el.classList.add('is-decoded');}catch(e){el.textContent='DECODING FAILED — CHECK THE ARTIFACT FORMAT.';el.classList.remove('is-decoded');}
+ }));
+ document.querySelectorAll('[data-copy-artifact]').forEach(btn=>btn.addEventListener('click',async()=>{
+  const text=document.getElementById(btn.dataset.copyArtifact)?.textContent||'';
+  try{await navigator.clipboard.writeText(text);btn.textContent='COPIED';setTimeout(()=>btn.textContent='COPY ARTIFACT',1200);}
+  catch{const range=document.createRange(),el=document.getElementById(btn.dataset.copyArtifact);range.selectNodeContents(el);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);btn.textContent='SELECTED — COPY MANUALLY';}
+ }));
+ window.ArchiveLab=Object.freeze({help(){return 'Field Lab methods: Base64, Morse, Caesar rotation. Artifacts are fictional text evidence.';},status(){return {directory:'AUXILIARY FIELD LAB',artifacts:3,externalToolsOptional:true};}});
+ console.info('%c[FIELD LAB]','color:#c7ad83;font-weight:bold','Three encoded artifacts await analysis. The tools are optional; the archive contains local decoders.');
+})();
