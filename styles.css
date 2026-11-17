@@ -135,3 +135,25 @@ body.notebook-is-open{overflow:auto}
 .notebook-secret-drawer{flex:0 0 auto;margin:10px 0;padding:13px 15px;background:repeating-linear-gradient(0deg,#171514,#171514 23px,#1c1917 24px);border:1px dashed #80594e;box-shadow:inset 0 0 22px #0008}
 .notebook-secret-drawer p{margin:8px 0 12px;color:#c9bba8;font:italic 14px/1.65 Georgia,serif}
 .notebook-secret-drawer .notebook-tool{font-size:8px}
+
+/* BUILD 0.8.8 — NOTEBOOK CONTROL DIALOG + HEADER / TOOLBAR ALIGNMENT FIXES */
+.notebook-dialog-card input[hidden]{display:none!important}
+.notebook-head{position:relative;min-height:58px;display:flex;align-items:center;justify-content:flex-end;padding-bottom:14px}
+.notebook-head>div{position:absolute;inset:0 48px 14px 0;display:flex;align-items:center;justify-content:center;min-width:0;pointer-events:none}
+.notebook-head .notebook-stamp{position:absolute;left:0;top:50%;transform:translateY(-50%);max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:auto}
+.notebook-head strong{display:block;max-width:100%;margin:0 auto;text-align:center;line-height:1.15;font-size:clamp(19px,2.8vw,26px);white-space:normal;overflow-wrap:anywhere}
+.notebook-close{position:relative;z-index:2;flex:0 0 auto}
+.notebook-rich-toolbar{width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:flex;flex-wrap:wrap;align-content:flex-start;overflow:visible}
+.notebook-rich-toolbar button{flex:0 0 auto;max-width:100%;white-space:nowrap}
+.notebook-body,.notebook-write{min-width:0;max-width:100%}
+.notebook-editor{min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:700px){
+ .notebook-head{min-height:62px}
+ .notebook-head>div{right:42px;align-items:center;padding-left:0}
+ .notebook-head .notebook-stamp{top:0;transform:none;font-size:7px;max-width:84px}
+ .notebook-head strong{font-size:clamp(17px,5vw,22px);padding:8px 0 0}
+ .notebook-rich-toolbar{gap:5px;padding:6px}
+ .notebook-rich-toolbar button{min-width:30px;height:30px;padding:4px 7px;font-size:9px}
+ .notebook-rich-toolbar span{display:none}
+}
+@media(max-width:390px){.notebook-head strong{font-size:17px}.notebook-rich-toolbar button{min-width:28px;padding:4px 6px;font-size:8px}}
