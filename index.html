@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Eternal Archive — Restoration Protocol V</title>
 <!-- ARCHIVE MARGIN NOTE / E.V.: The public index is not the complete index. Count the observers, not the entries. -->
-<meta name="archive-revision" content="0.5.18">
+<meta name="archive-revision" content="0.5.19">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23090a0b%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2222%22 fill=%22none%22 stroke=%22%23a53a37%22 stroke-width=%222%22/%3E%3Cpath d=%22M32 10v44M10 32h44%22 stroke=%22%23a99a79%22 stroke-width=%222%22/%3E%3C/svg%3E">
 <meta name="archive-custody" content="The eighteenth record was opened before the eighteenth visitor arrived.">
 <style>
@@ -21,14 +21,28 @@
 .archive-secret-panel.revealed{display:block;animation:archiveReveal .7s ease-out}
 .archive-secret-panel strong{display:block;color:#bd7770;font-weight:400;letter-spacing:.16em;margin-bottom:7px}
 @keyframes archiveReveal{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* OPTIONAL DISCOVERY LAYER */
+[data-secret-doc], [data-seal], #archiveTitle, #archiveBrand, #buildStamp, #missingRecordTile {cursor:crosshair}
+[data-secret-doc]:hover, [data-seal]:hover {border-color:#76514a}
+.archive-secret-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.86);backdrop-filter:blur(4px)}
+.archive-secret-overlay.open{display:flex}
+.archive-secret-card{width:min(620px,100%);max-height:82vh;overflow:auto;background:#101213;border:1px solid #76504a;padding:24px;box-shadow:0 25px 100px #000}
+.archive-secret-card h3{font:26px Georgia,serif;font-weight:400;color:#e1d9ce;margin:10px 35px 12px 0}
+.archive-secret-card p{font-size:11px;color:#b4ada1;white-space:pre-line}
+.archive-secret-card .secret-close{float:right;background:transparent;border:1px solid #414141;color:#c9c1b5;padding:5px 9px;font:10px var(--mono)}
+.archive-secret-card .secret-stamp{color:#bd7770;font-size:9px;letter-spacing:.16em}
+.archive-secret-card .secret-copy{border-left:2px solid #69413d;padding:12px 15px;background:#171516;margin:15px 0}
+
 </style>
 </head>
-<body data-archive-build="0.5.18" data-observer-record="018" data-index-state="incomplete">
+<body data-archive-build="0.5.19" data-observer-record="018" data-index-state="incomplete">
 <!-- DO NOT REMOVE: The archive has always kept a second register. The first register counts names. The second counts readers. -->
 <div class="shell" data-archive-node="public-terminal-003">
-<header class="top"><div class="brand">E.A. / TERMINAL 003 <span style="color:#666">— ARCHIVAL DIVISION</span></div><div class="status">● INVESTIGATION PROTOCOL ACTIVE</div></header>
+<header class="top"><div class="brand" id="archiveBrand" title="ARCHIVE CUSTODY MARK / DO NOT REPEAT">E.A. / TERMINAL 003 <span style="color:#666">— ARCHIVAL DIVISION</span></div><div class="status">● INVESTIGATION PROTOCOL ACTIVE</div></header>
 <div id="observerSecret" class="archive-secret-panel" role="status" aria-live="polite"><strong>UNINDEXED OBSERVER RECORD / 018</strong>The archive did not count twenty-three bodies. It counted twenty-three identities. It now counts eighteen readers who have reached this record. The previous seventeen are not all accounted for.</div>
-<section class="hero"><div class="eyebrow">A RECORD OF THINGS THAT MUST NOT BE FORGOTTEN</div><h1>THE ETERNAL ARCHIVE</h1><p>History is not what happened. It is what survived.</p><p class="warning">DO NOT SEARCH FOR THE FIRST WITNESS.</p></section>
+<div id="archiveSecretOverlay" class="archive-secret-overlay" aria-hidden="true"><div class="archive-secret-card" role="dialog" aria-modal="true" aria-labelledby="secretTitle"><button class="secret-close" id="closeArchiveSecret">CLOSE ×</button><div class="secret-stamp" id="secretStamp">UNINDEXED MARGINALIA</div><h3 id="secretTitle">Recovered note</h3><div class="secret-copy"><p id="secretBody"></p></div><p class="small" id="secretFoot">This note does not alter investigation progress.</p></div></div>
+<section class="hero"><div class="eyebrow">A RECORD OF THINGS THAT MUST NOT BE FORGOTTEN</div><h1 id="archiveTitle" title="A title is also an index.">THE ETERNAL ARCHIVE</h1><p>History is not what happened. It is what survived.</p><p class="warning">DO NOT SEARCH FOR THE FIRST WITNESS.</p></section>
 <div class="layout">
 <nav class="nav" aria-label="Archive navigation"><div class="navhead">AVAILABLE DIRECTORIES</div>
 <button class="active" data-page="home">00 / OVERVIEW <small>›</small></button><button data-page="archive">01 / ARCHIVE INDEX <small>›</small></button><button data-page="registry">02 / MEMBER REGISTRY <small>›</small></button><button data-page="doctrine">03 / ORIGINAL DOCTRINE <small>›</small></button><button data-page="incidents">04 / INCIDENT RECORDS <small>›</small></button><button data-page="maintenance">05 / MAINTENANCE LOG <small>›</small></button><button data-page="investigation">06 / INVESTIGATION <small>›</small></button><button data-page="testimonies">07 / TESTIMONIES <small>›</small></button><button data-page="restricted">08 / RESTRICTED FILES <small>›</small></button><button data-page="terminal">09 / ARCHIVE TERMINAL <small>›</small></button><button data-page="stage3" id="stage3Nav" style="display:none">10 / THE FORGOTTEN <small>›</small></button><button data-page="forgotten" id="forgottenNav" style="display:none">11 / RECORD 24 <small>›</small></button><button data-page="root" id="rootNav" style="display:none">12 / LAST DAWN <small>›</small></button><button data-page="stage4" id="stage4Nav" style="display:none">13 / AFTER THE DAWN <small>›</small></button><button data-page="stage5" id="stage5Nav" style="display:none">14 / THE UNWRITTEN <small>›</small></button>
@@ -37,22 +51,22 @@
 <section class="page active" id="home"><div class="kicker">TERMINAL 001 / PUBLIC ACCESS</div><h2>Welcome back.</h2><p class="intro">This archive was never intended to be accessed by the public. If you are reading this, the restoration protocol has already begun.</p>
 <div class="stats"><div class="stat"><b>23 / 24</b><span>RECORDS RECOVERED</span><div class="progress"><i></i></div></div><div class="stat"><b>7</b><span>SEALED WITNESSES</span></div><div class="stat"><b>1998</b><span>LAST CONFIRMED INCIDENT</span></div></div>
 <div class="notice"><span class="tag">SYSTEM MESSAGE</span><br>One record remains sealed. Do not attempt to reconstruct it without authorization.</div>
-<div class="grid"><div class="tile"><h3>THE CONGREGATION</h3><p>An organization recorded under several names across more than three thousand years.</p></div><div class="tile"><h3>THE LAST DEPARTURE</h3><p>A ceremony repeatedly described as a death ritual. No verified burial records exist.</p></div><div class="tile"><h3>THE 1998 INCIDENT</h3><p>Twenty-three members disappeared. The official report remains incomplete.</p></div><div class="tile"><h3>THE MISSING RECORD</h3><p>Registry entry 24 has been removed from every recovered index.</p></div></div>
+<div class="grid"><div class="tile"><h3>THE CONGREGATION</h3><p>An organization recorded under several names across more than three thousand years.</p></div><div class="tile"><h3>THE LAST DEPARTURE</h3><p>A ceremony repeatedly described as a death ritual. No verified burial records exist.</p></div><div class="tile"><h3>THE 1998 INCIDENT</h3><p>Twenty-three members disappeared. The official report remains incomplete.</p></div><div class="tile" id="missingRecordTile" title="This entry has been touched more often than the others."><h3>THE MISSING RECORD</h3><p>Registry entry 24 has been removed from every recovered index.</p></div></div>
 <div class="actions"><button class="action" data-go="archive">BEGIN INVESTIGATION</button><button class="action quiet" data-go="registry">OPEN MEMBER REGISTRY</button></div>
 </section>
 <section class="page" id="archive"><div class="kicker">DIRECTORY 01 / RECOVERED MATERIAL</div><h2>Archive index</h2><p class="intro">Recovered files have been sorted by subject. Some records contain conflicting dates or incomplete provenance. Treat every document as evidence, not certainty.</p>
 <div class="searchrow"><input id="archiveSearch" placeholder="Search archive records…" aria-label="Search archive"><button id="searchBtn">SEARCH</button></div><div id="archiveResults" class="doclist">
-<article class="doc" data-search="1998 disappearance incident report members missing"><div class="date">DOC-1998-01</div><div><h3>Incident summary: November 1998</h3><p>Twenty-three members reported missing from three separate locations. No bodies recovered. Case status: unresolved.</p></div></article>
+<article class="doc" data-secret-doc="incident" data-search="1998 disappearance incident report members missing" title="The first document in a three-part marginal sequence."><div class="date">DOC-1998-01</div><div><h3>Incident summary: November 1998</h3><p>Twenty-three members reported missing from three separate locations. No bodies recovered. Case status: unresolved.</p></div></article>
 <article class="doc" data-search="founding manuscript order first silence origin ancient"><div class="date">DOC-OR-001</div><div><h3>Fragments of the First Silence</h3><p>Translated fragments attributed to the earliest known version of the Order's doctrine. Dating disputed.</p></div></article>
 <article class="doc" data-search="last departure ceremony identity erasure ritual"><div class="date">DOC-RIT-07</div><div><h3>Procedure: The Last Departure</h3><p>A ceremonial procedure involving the surrender of names, records, and former affiliations.</p></div></article>
-<article class="doc" data-search="photograph group portrait 23 people 24th member"><div class="date">IMG-1998-23</div><div><h3>Group photograph, recovered copy</h3><p>Twenty-three visible figures. Caption on reverse: “23 + 1 = 23”. Original negative unavailable.</p></div></article>
-<article class="doc" data-search="seal seventh dawn location witness memory"><div class="date">DOC-SEAL-07</div><div><h3>Memorandum concerning the Seventh Seal</h3><p>“The seventh was never a place.” Author and date unknown.</p></div></article>
+<article class="doc" data-secret-doc="photograph" data-search="photograph group portrait 23 people 24th member" title="The second document in a three-part marginal sequence."><div class="date">IMG-1998-23</div><div><h3>Group photograph, recovered copy</h3><p>Twenty-three visible figures. Caption on reverse: “23 + 1 = 23”. Original negative unavailable.</p></div></article>
+<article class="doc" data-secret-doc="seal" data-search="seal seventh dawn location witness memory" title="The third document in a three-part marginal sequence."><div class="date">DOC-SEAL-07</div><div><h3>Memorandum concerning the Seventh Seal</h3><p>“The seventh was never a place.” Author and date unknown.</p></div></article>
 </div><p class="hiddenhint" id="searchStatus">SEARCH INDEX: 5 RECOVERED DOCUMENTS</p></section>
 <section class="page" id="registry"><div class="kicker">DIRECTORY 02 / PERSONNEL RECORDS</div><h2>Member registry</h2><p class="intro">Twenty-three profiles have been recovered. Select a record to inspect its summary. Registry numbering may not reflect order of initiation.</p><div class="memberlist" id="members"></div><div class="profile-modal" id="memberModal" aria-hidden="true"><div class="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="detailName"><button class="profile-close" id="closeMemberModal" type="button" aria-label="Close profile">CLOSE ×</button><div class="tag">PERSONNEL FILE / RECOVERED RECORD</div><h3 id="detailName"></h3><p id="detailText"></p><hr class="profile-rule"><div class="detail-meta" id="detailMeta"></div></div></div><div class="notice"><span class="tag">REGISTRY WARNING</span><br>Member 01 and Member 23 appear to share an identity. This discrepancy has not been resolved.</div></section>
 <section class="page" id="doctrine"><div class="kicker">DIRECTORY 03 / TRANSLATED MANUSCRIPTS</div><h2>Doctrine of the First Silence</h2><p class="intro">The following is a provisional translation assembled from three damaged manuscripts. Original language and authorship remain disputed.</p>
 <div class="notice"><span class="tag">FRAGMENT I — THE BEFORE</span><br><p class="quote">“Before the first dawn, there was no name by which a thing could be called. There was only the One, and the One did not know that it was alone.”</p></div>
 <h3 style="font:20px Georgia;font-weight:400">The Seven Witnesses</h3><p>According to the doctrine, seven manifestations separated from the First One and established the boundaries that allowed a world to exist independently. Later copies refer to these manifestations as Witnesses, Keepers, or the Seven Divisions.</p>
-<div class="seal"><div class="sealmark">I</div><div><strong>The Beginning</strong><span>Creation / first separation</span></div></div><div class="seal"><div class="sealmark">II</div><div><strong>The Name</strong><span>Identity / distinction</span></div></div><div class="seal"><div class="sealmark">III</div><div><strong>The Witness</strong><span>Memory / recognition</span></div></div><div class="seal"><div class="sealmark">IV</div><div><strong>The Divide</strong><span>Life and death / boundary</span></div></div><div class="seal"><div class="sealmark">V</div><div><strong>The Silence</strong><span>Absence / concealment</span></div></div><div class="seal"><div class="sealmark">VI</div><div><strong>The Return</strong><span>Time / recurrence</span></div></div><div class="seal"><div class="sealmark">VII</div><div><strong>The Last Dawn</strong><span>Existence / final boundary</span></div></div>
+<div class="seal"><div class="sealmark">I</div><div><strong>The Beginning</strong><span>Creation / first separation</span></div></div><div class="seal" data-seal="II" title="A marginal note has been pressed into this line."><div class="sealmark">II</div><div><strong>The Name</strong><span>Identity / distinction</span></div></div><div class="seal"><div class="sealmark">III</div><div><strong>The Witness</strong><span>Memory / recognition</span></div></div><div class="seal"><div class="sealmark">IV</div><div><strong>The Divide</strong><span>Life and death / boundary</span></div></div><div class="seal" data-seal="V" title="A marginal note has been pressed into this line."><div class="sealmark">V</div><div><strong>The Silence</strong><span>Absence / concealment</span></div></div><div class="seal"><div class="sealmark">VI</div><div><strong>The Return</strong><span>Time / recurrence</span></div></div><div class="seal" data-seal="VII" title="A marginal note has been pressed into this line."><div class="sealmark">VII</div><div><strong>The Last Dawn</strong><span>Existence / final boundary</span></div></div>
 <hr class="rule"><span class="tag">FRAGMENT II — THE DEPARTURE</span><p>“A name is a door. A remembered face is a summons. Let the record be unmade, and the seeker shall pass by.”</p><p class="small">Translator's note: The phrase “unmade” may refer to ritual anonymity, destruction of records, or a metaphorical death. The intended meaning cannot be established from the surviving text.</p></section>
 <section class="page" id="incidents"><div class="kicker">DIRECTORY 04 / CASE FILES</div><h2>Incident records</h2><p class="intro">A partial chronology of events associated with the Congregation. Dates and descriptions are drawn from recovered copies and have not been independently verified.</p>
 <div class="doclist"><article class="doc"><div class="date">c. 1200 BCE</div><div><h3>First attributed reference</h3><p>A damaged inscription mentions “those who keep the silence before dawn.” Its provenance is uncertain.</p></div></article><article class="doc"><div class="date">1602</div><div><h3>The Ashford correspondence</h3><p>A letter attributed to Miriam Ashford describes a gathering of seven custodians. The handwriting resembles a later document.</p></div></article><article class="doc"><div class="date">1891</div><div><h3>Disappearance of the North collection</h3><p>Several manuscripts were removed from a private collection. The inventory lists no purchaser or recipient.</p></div></article><article class="doc"><div class="date">1974</div><div><h3>Uncatalogued excavation report</h3><p>A report references a sealed chamber and seven carved marks. The site name has been redacted in the recovered copy.</p></div></article><article class="doc"><div class="date">16 NOV 1998</div><div><h3>The Twenty-Three</h3><p>Twenty-three members disappeared within a period of forty-eight hours. No bodies were recovered. The organization ceased public activity.</p></div></article></div>
@@ -128,7 +142,7 @@ NOTICE: Commands are recorded in the maintenance ledger.
 <div id="archive-inspection-fragment" hidden data-clue="observer-count" data-previous-observers="17" data-current-observer="18" data-instruction="The record is counting readers, not sessions.">
   <span class="source-annotation">E.V. / If this text is visible, you have looked beneath the public record. Seventeen came before you. The archive has already written your number.</span>
 </div>
-<footer class="footer"><span>THE ETERNAL ARCHIVE / PUBLIC TERMINAL 003</span><span>FICTIONAL ARCHIVE — RESTORATION BUILD 0.5</span></footer>
+<footer class="footer"><span>THE ETERNAL ARCHIVE / PUBLIC TERMINAL 003</span><span id="buildStamp" title="The footer is not part of the public index.">FICTIONAL ARCHIVE — RESTORATION BUILD 0.5</span></footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -206,9 +220,12 @@ const termFiles={
  '/afterword/final-memo.txt':'The seven built the boundaries. The archive kept their memory. The outsiders gave the archive a reason to remain. We were never the key. We were the lock.',
  '/unwritten/collective-author.txt':'AUTHOR FIELD: COLLECTIVE / THE OUTSIDERS. Every session left a line; every line made the next one possible.',
  '/unwritten/blank-page.txt':'The archive preserves what happened. It cannot store what may still become. FIELD: FUTURE.',
- '/unwritten/final-instruction.txt':'Do not restore the First One. Do not erase the seven. Do not close the record. Let the next page remain UNWRITTEN.'
+ '/unwritten/final-instruction.txt':'Do not restore the First One. Do not erase the seven. Do not close the record. Let the next page remain UNWRITTEN.',
+ '/unfiled/margin-02.txt':'MARGIN 02 / E.V.\nThe archive was built to remember the boundaries, not the thing they contain.\nA boundary without a witness becomes a door.',
+ '/unfiled/negative-space.txt':'NEGATIVE SPACE / PHOTOGRAPH NOTE\nThe empty space between figures was measured twice. The second measurement included the photographer.',
+ '/unfiled/return-address.txt':'RETURN ADDRESS / UNSENT\nTO: THE NEXT READER\nFROM: THE LAST PERSON WHO THOUGHT THEY WERE ALONE'
 };
-const termDirs={'/':['archive/','doctrine/','system/','afterword/','unwritten/','README.txt'],'/archive/':['incident-1998.txt','doc-07-1998.txt','identity-record.txt','photo-caption.txt'],'/doctrine/':['seven-witnesses.txt'],'/system/':['maintenance.log','outsider_history.dat'],'/forgotten/':['record-024.txt','vey-final.txt'],'/root/':['final-instruction.txt'],'/afterword/':['outsider-index.txt','eighth-witness.txt','final-memo.txt'],'/unwritten/':['collective-author.txt','blank-page.txt','final-instruction.txt']};
+const termDirs={'/':['archive/','doctrine/','system/','afterword/','unwritten/','README.txt'],'/archive/':['incident-1998.txt','doc-07-1998.txt','identity-record.txt','photo-caption.txt'],'/doctrine/':['seven-witnesses.txt'],'/system/':['maintenance.log','outsider_history.dat'],'/forgotten/':['record-024.txt','vey-final.txt'],'/root/':['final-instruction.txt'],'/afterword/':['outsider-index.txt','eighth-witness.txt','final-memo.txt'],'/unwritten/':['collective-author.txt','blank-page.txt','final-instruction.txt'],'/unfiled/':['margin-02.txt','negative-space.txt','return-address.txt']};
 function termPrint(text,cls=''){const line=document.createElement('div');line.className=cls;line.textContent=text;terminalOutput.appendChild(line);terminalScreen.scrollTop=terminalScreen.scrollHeight;}
 function termPrompt(){document.getElementById('termPrompt').textContent='outsider@archive:'+termCwd+'$';document.getElementById('termPath').textContent=termCwd;}
 function termResolve(path){if(!path||path==='.')return termCwd;if(path==='~')return '/';let p=path.startsWith('/')?path:termCwd+path;let parts=[];for(const bit of p.split('/')){if(!bit||bit==='.')continue;if(bit==='..')parts.pop();else parts.push(bit);}return '/'+parts.join('/')+(p.endsWith('/')&&parts.length?'/':'');}
@@ -217,7 +234,7 @@ if(progress.solved.length<4){termPrint('ACCESS DENIED — FOUR INVESTIGATION FIN
 const parts=input.match(/"[^\"]*"|'[^']*'|\S+/g)||[];const cmd=(parts.shift()||'').toLowerCase();const arg=parts.join(' ').replace(/^['"]|['"]$/g,'');
 const files=Object.keys(termFiles);let result='';
 switch(cmd){
-case 'help':case '?':result='AVAILABLE COMMANDS\n  help                 show this guide\n  ls [path]            list directory contents\n  cd [path]            change directory\n  pwd                  print current directory\n  cat <file>           read a recovered file\n  find <word>          search filenames and file contents\n  grep <word> <file>   search within a file\n  whoami               identify this session\n  status               show restoration status\n  history              show recent commands\n  clear                clear the terminal screen\n  date                 show archive system date\n  remember             inspect memory protocol\n  witness              inspect witness succession\n  open forgotten       open the recovered Record 24 dossier\n  open root            open the final protocol\n  open afterword       open the post-ending records\n  open unwritten       open Protocol V (afterword required)\n  exit                 close the current shell session\n\nTIP: Try `ls`, then `cd archive`, then `cat incident-1998.txt`.';break;
+case 'help':case '?':result='AVAILABLE COMMANDS\n  help                 show this guide\n  ls [path]            list directory contents\n  cd [path]            change directory\n  pwd                  print current directory\n  cat <file>           read a recovered file\n  find <word>          search filenames and file contents\n  grep <word> <file>   search within a file\n  whoami               identify this session\n  status               show restoration status\n  history              show recent commands\n  clear                clear the terminal screen\n  date                 show archive system date\n  remember             inspect memory protocol\n  witness              inspect witness succession\n  listen               recover a deleted audio margin\n  mirror               inspect archive reflection\n  unfiled              list uncatalogued notes\n  open forgotten       open the recovered Record 24 dossier\n  open root            open the final protocol\n  open afterword       open the post-ending records\n  open unwritten       open Protocol V (afterword required)\n  exit                 close the current shell session\n\nTIP: Try `ls`, then `cd archive`, then `cat incident-1998.txt`.';break;
 case 'ls':case 'dir':{const path=termResolve(arg||termCwd);const key=path.endsWith('/')?path:path+'/';if(termDirs[key])result=termDirs[key].join('    ');else if(termFiles[path])result=path.split('/').pop();else result='ls: cannot access '+path+': no such directory';break;}
 case 'pwd':result=termCwd;break;
 case 'cd':{const dest=termResolve(arg||'/');const key=dest==='/'?'/':dest.replace(/\/$/,'')+'/';if(termDirs[key]){termCwd=key;termPrompt();result='';}else result='cd: no such directory: '+(arg||'/');break;}
@@ -233,6 +250,9 @@ case 'remember':result='MEMORY PROTOCOL\nA name is a door. A remembered face is 
 case 'witness':result='SUCCESSION ERROR\nFIRST WITNESS IDENTITY DOES NOT MATCH THE FOUNDING REGISTER.\n\nThe title survived. The original bearer did not.';break;
 case 'trace':result='SECOND REGISTER / READ-ONLY\n17 PREVIOUS OBSERVER RECORDS FOUND.\n1 ENTRY MARKED UNRESOLVED.\nThe archive remembers the order in which it was read.';break;
 case 'observer':result='OBSERVER COUNT: 018\nPREVIOUS OBSERVERS: 017\nCURRENT RECORD: ACTIVE\nThis number is not a password.';break;
+case 'listen':result='RECOVERED AUDIO MARGIN / CHANNEL 0\n[00:00:04] — Do not count the doors.\n[00:00:09] — Count what passes through them.\n[00:00:16] — The archive has no voice when nobody remembers it.';break;
+case 'mirror':result='REFLECTION TEST / READ ONLY\nThe registry lists 23 identities.\nThe observer ledger lists 18 readers.\nNeither number describes the same population.\nA mirror does not create a second person.';break;
+case 'unfiled':result='/unfiled/margin-02.txt\n/unfiled/negative-space.txt\n/unfiled/return-address.txt\nThree notes are not indexed in the public directory.';break;
 case 'open':{const target=(arg||'').toLowerCase();if(target==='forgotten'&&progress.stage3Solved.length===3){showPage('forgotten');result='DIRECTORY OPENED: /forgotten';}else if(target==='root'&&progress.stage3Solved.length===3){showPage('root');result='ROOT DIRECTORY OPENED.';}else if(target==='afterword'&&progress.ending){showPage('stage4');result='AFTERWORD DIRECTORY OPENED.';}else if(target==='unwritten'&&progress.stage4Solved.length===3){showPage('stage5');result='PROTOCOL V DIRECTORY OPENED.';}else result='ACCESS DENIED — complete all seven investigations first.';break;}
 case 'exit':result='SESSION REMAINS OPEN. The archive has not released your identity.';break;
 default:result='command not found: '+cmd+'\nType `help` to list available commands.';
@@ -264,7 +284,7 @@ renderProgress();renderStage3();initCloud();
   document.documentElement.dataset.archiveMargin='The first register counts names. The second counts readers.';
   document.querySelectorAll('[data-page]').forEach((el,i)=>{if(!el.dataset.archiveIndex)el.dataset.archiveIndex=String(i).padStart(2,'0');});
   try{
-    localStorage.setItem('ea_public_index_revision','0.5.18');
+    localStorage.setItem('ea_public_index_revision','0.5.19');
     localStorage.setItem('ea_observer_record','018');
   }catch(_e){}
   const logWelcome=()=>{
@@ -293,6 +313,91 @@ renderProgress();renderStage3();initCloud();
     if((progress.stage5Solved||[]).length===3){console.warn('[WARNING] PROTOCOL V COMPLETE / THE NEXT PAGE IS NOT IN THE INDEX.');}
     else if((progress.stage4Solved||[]).length===3){console.warn('[WARNING] UNAUTHORIZED OBSERVER DETECTED');console.log('observer_count: 18');console.log('previous_observers: 17');console.log('This is not your first visit.');}
   },250);
+})();
+
+/* THE MARGINALIA INDEX — optional click discoveries. These reveal lore, never answer keys. */
+(function initClickSecrets(){
+  const overlay=document.getElementById('archiveSecretOverlay');
+  const title=document.getElementById('secretTitle');
+  const body=document.getElementById('secretBody');
+  const stamp=document.getElementById('secretStamp');
+  const close=document.getElementById('closeArchiveSecret');
+  const discovered=new Set();
+  const sealSequence=[];
+  const documentSequence=[];
+  const show=(id,heading,message,label='UNINDEXED MARGINALIA')=>{
+    if(!overlay)return;
+    title.textContent=heading;body.textContent=message;stamp.textContent=label;
+    overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');
+    try{localStorage.setItem('ea_marginalia_'+id,'read');}catch(_e){}
+    discovered.add(id);
+    console.info('[MARGINALIA READ] '+id);
+  };
+  const hide=()=>{overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true')};
+  close?.addEventListener('click',hide);
+  overlay?.addEventListener('click',e=>{if(e.target===overlay)hide()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay?.classList.contains('open'))hide()});
+
+  // Seven deliberate clicks on the title echo the seven original boundaries.
+  let titleClicks=0, titleTimer=null;
+  document.getElementById('archiveTitle')?.addEventListener('click',()=>{
+    titleClicks++;clearTimeout(titleTimer);titleTimer=setTimeout(()=>titleClicks=0,2600);
+    if(titleClicks===7){titleClicks=0;show('title-seven','THE SEVENTH IMPRESSION','A note was found beneath the title block.\n\n“Seven boundaries were made to keep the First One from being remembered. The archive was made to remember the boundaries.”\n\n— E.V. / handwritten on the reverse of the index plate','TITLE BLOCK / IMPRESSION 07');}
+  });
+
+  // The second and fifth and seventh seals form a sequence, not a password.
+  document.querySelectorAll('[data-seal]').forEach(el=>el.addEventListener('click',()=>{
+    const v=el.dataset.seal;sealSequence.push(v);if(sealSequence.length>3)sealSequence.shift();
+    if(sealSequence.join('-')==='II-V-VII'){
+      sealSequence.length=0;show('seal-margin','THE SPACE BETWEEN','NAME. SILENCE. EXISTENCE.\n\nThe surviving margin does not describe three places. It describes three conditions required for a thing to be remembered: it must be distinguished, it must survive absence, and it must be allowed to exist beyond its witness.\n\nA later hand added: “There was always a space between the seven.”','DOCTRINE / MARGINAL ORDER');
+    }
+  }));
+
+  // Reading three archive records in a particular order exposes a note on the reverse.
+  document.querySelectorAll('[data-secret-doc]').forEach(el=>el.addEventListener('click',()=>{
+    documentSequence.push(el.dataset.secretDoc);if(documentSequence.length>3)documentSequence.shift();
+    if(documentSequence.join('-')==='incident-photograph-seal'){
+      documentSequence.length=0;show('reverse-index','THE REVERSE OF THE INDEX','The three documents were filed together in the original catalogue. Their order was later changed.\n\nThe incident counts missing members. The photograph counts visible figures. The seal memorandum counts boundaries.\n\nThe missing item is not a twenty-fourth body. It is the identity that made the arithmetic possible.','ARCHIVE INDEX / RECONSTRUCTED');
+    }
+  }));
+
+  // Registry pair: open record 01, then record 23. Both are generated as buttons.
+  let firstProfileSeen=false;
+  const members=document.getElementById('members');
+  const bindProfiles=()=>members?.querySelectorAll('.member').forEach((el,i)=>{
+    if(el.dataset.secretProfileBound)return;el.dataset.secretProfileBound='1';
+    el.addEventListener('click',()=>{
+      if(i===0){firstProfileSeen=true;return;}
+      if(i===22&&firstProfileSeen){firstProfileSeen=false;show('duplicate-profile','ONE HAND / TWO ENTRIES','The first entry was not copied from the twenty-third. Both entries were written by the same hand, on paper from the same batch.\n\nA clerk added: “Do not merge the records. The duplicate is evidence that the registry counts titles and identities differently.”','PERSONNEL / DUPLICATE CUSTODY');}
+    });
+  });
+  bindProfiles();
+  if(members)new MutationObserver(bindProfiles).observe(members,{childList:true});
+
+  // Click the missing-record tile four times to reveal an old system note.
+  let tileClicks=0;
+  document.getElementById('missingRecordTile')?.addEventListener('click',()=>{
+    tileClicks++;if(tileClicks===4){tileClicks=0;show('missing-tile','THE EMPTY SLOT','The removed record left a physical gap in the index. The gap is older than the 1998 incident.\n\nMaintenance note: “The blank was present before the page was written.”','MAINTENANCE / PRE-EXISTING ABSENCE');}
+  });
+
+  // The build stamp is clickable; the repeated action feels like checking a damaged print mark.
+  let stampClicks=0;
+  document.getElementById('buildStamp')?.addEventListener('click',()=>{
+    stampClicks++;if(stampClicks===5){stampClicks=0;show('footer-stamp','THE PRINTER’S FIFTH COPY','Copy 1: public index.\nCopy 2: restricted index.\nCopy 3: investigator record.\nCopy 4: administrator record.\nCopy 5: the copy that was never printed.\n\nThe fifth copy has no page number because it was made for the reader, not the archive.','FOOTER / PRINT CONTROL');}
+  });
+
+  // A normal click on the redacted maintenance word exposes only the note behind the redaction.
+  document.querySelectorAll('.redacted').forEach(el=>{
+    el.title='The redaction is not a lock. It is a fold.';
+    el.style.cursor='help';
+    el.addEventListener('click',()=>show('redaction-fold','THE FOLD IN THE PAGE','The original line did not say UNKNOWN. It said: “Source: the archive itself.”\n\nThe redaction was applied after the report had been signed.','MAINTENANCE / REDACTION REVISION'));
+  });
+
+  // Publicly readable progress only; no unlock state or answer key is written here.
+  window.ArchiveMarginalia=Object.freeze({
+    read(){return [...discovered];},
+    index(){return ['title-seven','seal-margin','reverse-index','duplicate-profile','missing-tile','footer-stamp','redaction-fold'];}
+  });
 })();
 </script>
 </body></html>
