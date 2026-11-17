@@ -117,3 +117,21 @@ body.notebook-is-open{overflow:hidden}
 .notebook-close{cursor:pointer;touch-action:manipulation}
 body.notebook-is-open{overflow:auto}
 @media(max-width:600px){.archive-notebook.notebook-open:before{display:none!important}.notebook-panel{left:auto;top:auto;right:10px;bottom:68px;transform:none;width:calc(100vw - 20px);height:min(72dvh,620px);max-height:calc(100dvh - 82px);padding:12px}.notebook-head{cursor:default;touch-action:auto}}
+
+
+/* BUILD 0.8.7 — archive-native page controls and notebook secrets */
+.notebook-stamp-secret{display:inline-block;padding:0;border:0;background:transparent;color:#a87569;font:8px var(--mono);letter-spacing:.19em;cursor:pointer;text-align:left}
+.notebook-stamp-secret:hover{color:#e1b5a4;text-shadow:0 0 9px #9a554855}
+.notebook-page-dialog[hidden],.notebook-secret-drawer[hidden]{display:none!important}
+.notebook-page-dialog{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:18px;background:rgba(3,4,5,.86);backdrop-filter:blur(2px)}
+.notebook-dialog-card{width:min(390px,100%);padding:22px;background:linear-gradient(145deg,#171819,#0d0f10);border:1px solid #76504a;box-shadow:0 16px 55px #000d;color:#d8d0c4}
+.notebook-dialog-kicker,.notebook-secret-heading{font:8px var(--mono);letter-spacing:.2em;color:#b47a6d}
+.notebook-dialog-card h3{margin:9px 0 7px;font:21px Georgia,serif;color:#e3d3c1}
+.notebook-dialog-card p{font:10px/1.6 var(--mono);color:#898176;margin:0 0 14px}
+.notebook-dialog-card input{display:block;width:100%;box-sizing:border-box;padding:11px;background:#090b0c;border:1px solid #51413c;color:#e4d8c8;font:12px var(--mono);outline:none}
+.notebook-dialog-card input:focus{border-color:#bd7770;box-shadow:0 0 0 1px #70423b}
+.notebook-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.notebook-dialog-primary{border-color:#8b5b51!important;color:#e7c9b8!important;background:#261a18!important}
+.notebook-secret-drawer{flex:0 0 auto;margin:10px 0;padding:13px 15px;background:repeating-linear-gradient(0deg,#171514,#171514 23px,#1c1917 24px);border:1px dashed #80594e;box-shadow:inset 0 0 22px #0008}
+.notebook-secret-drawer p{margin:8px 0 12px;color:#c9bba8;font:italic 14px/1.65 Georgia,serif}
+.notebook-secret-drawer .notebook-tool{font-size:8px}
