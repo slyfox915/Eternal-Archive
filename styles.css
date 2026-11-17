@@ -48,3 +48,62 @@
 .notebook-editor ul,.notebook-editor ol{padding-left:22px}
 .notebook-editor blockquote{border-left:2px solid #76504a;padding-left:10px;color:#b5a99b}
 @media(max-width:600px){.notebook-pagebar{align-items:flex-start}.notebook-page-tab{max-width:105px}.notebook-editor{height:180px}}
+
+/* BUILD 0.8.5 — ARCHIVE SCROLLBARS + REFINED NOTEBOOK */
+:root{scrollbar-color:#72504a #0b0d0e;scrollbar-width:thin;}
+*{scrollbar-width:thin;scrollbar-color:#72504a #0b0d0e;}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:#0b0d0e;border-left:1px solid #252322}
+*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#79554d,#493633);border:2px solid #0b0d0e;border-radius:0}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#a06d60,#69443e)}
+*::-webkit-scrollbar-corner{background:#0b0d0e}
+html{scrollbar-gutter:stable}
+.archive-notebook{position:relative;z-index:1800}
+.archive-notebook.notebook-open:before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(3px);z-index:0;pointer-events:auto}
+.notebook-fab{position:relative;z-index:2;transition:background .18s,border-color .18s,transform .18s}
+.notebook-fab:hover{transform:translateY(-2px)}
+.notebook-panel{position:fixed;z-index:1;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(720px,calc(100vw - 32px));height:min(820px,calc(100dvh - 36px));max-height:calc(100dvh - 36px);display:flex;flex-direction:column;gap:0;padding:clamp(16px,2.6vw,26px);overflow:hidden;background:linear-gradient(145deg,#131516 0%,#0e1011 72%);border:1px solid #76504a;box-shadow:0 28px 100px #000e;color:#d7d1c6}
+.notebook-panel[hidden]{display:none!important}
+.notebook-head{flex:0 0 auto;align-items:center;padding-bottom:15px}
+.notebook-head strong{font-size:clamp(21px,3vw,27px);letter-spacing:.01em}
+.notebook-close{width:36px;height:36px;font-size:21px;cursor:pointer;transition:.15s}
+.notebook-close:hover{border-color:#bd7770;background:#241918;color:#fff}
+.notebook-pagebar{flex:0 0 auto;display:flex;align-items:center;gap:10px;margin-top:14px}
+.notebook-page-tabs{gap:6px;scrollbar-width:thin;padding:4px 2px 8px}
+.notebook-page-tab{max-width:160px;padding:9px 12px;font-size:10px;letter-spacing:.04em}
+.notebook-page-tab:focus-visible,.notebook-tool:focus-visible,.notebook-rich-toolbar button:focus-visible,.notebook-tab:focus-visible{outline:1px solid #c17b70;outline-offset:2px}
+.notebook-add-page{padding:9px 12px;min-height:34px}
+.notebook-page-actions{flex:0 0 auto;margin:2px 0 12px}
+.notebook-page-actions .notebook-tool{padding:7px 10px;font-size:9px}
+.notebook-tabs{flex:0 0 auto;display:flex;gap:7px;margin:0 0 12px;border-bottom:1px solid #34302e}
+.notebook-tab{padding:9px 15px;border:1px solid transparent;border-bottom:0;background:transparent;color:#888277;font:10px var(--mono);letter-spacing:.12em}
+.notebook-tab.active{background:#211817;border-color:#76504a;color:#e6c9ba}
+.notebook-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.notebook-body[hidden]{display:none!important}
+.notebook-label{flex:0 0 auto;margin-bottom:9px;font-size:9px;letter-spacing:.18em;color:#a39a8b}
+.notebook-rich-toolbar{flex:0 0 auto;gap:6px;margin:0 0 10px;padding:7px;background:#151718;border:1px solid #302d2a;border-bottom-color:#4b3935}
+.notebook-rich-toolbar button{min-width:34px;height:32px;padding:5px 9px;background:#202223;border-color:#4a413c;font-size:11px;transition:background .15s,border-color .15s}
+.notebook-rich-toolbar button:hover{background:#302321}
+.notebook-rich-toolbar span{height:22px;margin:0 5px}
+.notebook-editor{flex:1 1 auto;width:100%;height:auto;min-height:220px;max-height:none;resize:none;overflow:auto;padding:22px clamp(16px,3vw,28px);background:#0a0c0d;border:1px solid #403b37;box-shadow:inset 0 2px 12px #0007;color:#ded7ca;font:15px/1.85 Georgia,serif;letter-spacing:.01em;caret-color:#c17b70;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4}
+.notebook-editor:focus{outline:0;border-color:#896057;box-shadow:inset 0 2px 12px #0007,0 0 0 1px #4c302c}
+.notebook-editor:empty:before{content:attr(data-placeholder);color:#68635b;font-style:italic}
+.notebook-editor p{margin:0 0 1em}
+.notebook-editor h2{font:24px/1.3 Georgia,serif;color:#e7d1bd;margin:1em 0 .5em}
+.notebook-editor h3{font:19px/1.35 Georgia,serif;color:#d7b8a5;margin:1em 0 .45em}
+.notebook-editor ul,.notebook-editor ol{padding-left:28px;margin:.5em 0 1em}
+.notebook-editor li{padding-left:4px;margin:.25em 0}
+.notebook-editor blockquote{margin:1em 0;border-left:2px solid #95645a;padding:8px 14px;background:#171514;color:#bdb1a2}
+.notebook-editor hr{border:0;border-top:1px solid #51433d;margin:1.2em 0}
+.notebook-help{flex:0 0 auto;margin:9px 0 0;font-size:9px;line-height:1.6;color:#81796e}
+.notebook-tools{flex:0 0 auto;padding:8px 0;gap:10px}
+.notebook-body canvas{flex:1 1 auto;height:auto;min-height:220px;max-height:none;border-color:#403b37;background-color:#090b0c}
+.notebook-foot{flex:0 0 auto;margin-top:14px;padding-top:13px}
+.notebook-foot>span{font-size:9px;letter-spacing:.13em}
+.notebook-foot .notebook-tool{padding:9px 13px}
+.notebook-privacy{flex:0 0 auto;margin:10px 0 0;font-size:9px;line-height:1.55}
+@media(max-width:600px){.archive-notebook.notebook-open:before{background:rgba(0,0,0,.84)}.notebook-panel{width:calc(100vw - 18px);height:calc(100dvh - 18px);max-height:calc(100dvh - 18px);padding:13px;border-radius:2px}.notebook-head strong{font-size:21px}.notebook-pagebar{gap:6px}.notebook-page-tab{max-width:115px;padding:8px}.notebook-add-page{padding:8px;font-size:8px}.notebook-editor{min-height:180px;padding:15px;font-size:14px}.notebook-body canvas{min-height:180px}.notebook-rich-toolbar{gap:4px;padding:5px}.notebook-rich-toolbar button{min-width:30px;height:30px;padding:4px 7px}.notebook-foot{gap:6px}.notebook-foot .notebook-tool{padding:8px 9px;font-size:8px}}
+@media(prefers-reduced-motion:reduce){.notebook-fab,.notebook-close,.notebook-rich-toolbar button{transition:none}}
+.archive-notebook{position:fixed;right:22px;bottom:20px;z-index:1800}
+body.notebook-is-open{overflow:hidden}
+@media(max-width:600px){.archive-notebook{right:12px;bottom:12px}}
