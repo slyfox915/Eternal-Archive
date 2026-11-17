@@ -427,7 +427,13 @@ Search results are being reordered. The archive is presenting the most recently 
 The archive has identified a reader outside the registry. Further direct access attempts may return altered copies.`};document.getElementById('interferenceText').textContent=msgs[state.awareness];document.getElementById('archiveInterference').classList.add('open');}else if(state.awareness>=8){document.getElementById('interferenceText').textContent=`SESSION FLAGGED / 018
 
 The archive has stopped treating your requests as anonymous. Return to the records. Read before requesting.`;document.getElementById('archiveInterference').classList.add('open');}}
- document.getElementById('dossierToggle').addEventListener('click',()=>{const open=!panel.classList.contains('open');panel.classList.toggle('open',open);panel.setAttribute('aria-hidden',String(!open));toggle.setAttribute('aria-expanded',String(open));});document.getElementById('dossierClose').addEventListener('click',()=>{panel.classList.remove('open');panel.setAttribute('aria-hidden','true');toggle.setAttribute('aria-expanded','false');});document.getElementById('interferenceClose').addEventListener('click',()=>document.getElementById('archiveInterference').classList.remove('open'));
+ const closeDossier=()=>{panel.classList.remove('open');panel.setAttribute('aria-hidden','true');toggle.setAttribute('aria-expanded','false');};
+ const openDossier=()=>{panel.classList.add('open');panel.setAttribute('aria-hidden','false');toggle.setAttribute('aria-expanded','true');};
+ toggle.addEventListener('click',()=>panel.classList.contains('open')?closeDossier():openDossier());
+ document.getElementById('dossierClose').addEventListener('click',closeDossier);
+ document.getElementById('interferenceClose').addEventListener('click',()=>document.getElementById('archiveInterference').classList.remove('open'));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDossier();document.getElementById('archiveInterference').classList.remove('open');}if(e.key.toLowerCase()==='d'&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault();panel.classList.contains('open')?closeDossier():openDossier();}});
+ document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!panel.contains(e.target)&&!toggle.contains(e.target))closeDossier();});
  // Records become evidence when deliberately opened/read. No new quiz screens are added.
  document.querySelectorAll('#archiveResults .doc').forEach((el,i)=>{el.classList.add('evidence-target');el.addEventListener('click',()=>{if(i===0)collect('incident');if(el.dataset.search?.includes('last departure'))collect('departure');if(el.dataset.secretDoc==='photograph')collect('photograph');});});
  document.querySelectorAll('#archiveResults .doc').forEach(el=>{if(el.dataset.search?.includes('last departure'))el.addEventListener('click',()=>collect('departure'));});
@@ -451,6 +457,6 @@ The archive has stopped treating your requests as anonymous. Return to the recor
  // Terminal becomes less reliable at high awareness, but never destroys progress or blocks commands permanently.
  const term=document.getElementById('terminalInput');term?.addEventListener('keydown',e=>{if(e.key==='Enter'&&state.awareness>=7){const v=term.value.trim().toLowerCase();if(v==='status'||v==='help'){setTimeout(()=>{const out=document.getElementById('terminalOutput');if(out)out.textContent+='\
 [ARCHIVE INTERFERENCE] Command history may be incomplete. Consult the original records.';},30);}}});
- render();window.ArchiveDossier=Object.freeze({status:()=>({evidence:state.evidence.length+'/10',awareness:state.awareness+'/8',session:'018'}),inspect:()=>{panel.classList.add('open');panel.setAttribute('aria-hidden','false');}});
- console.info('%c[FIELD DOSSIER AVAILABLE]','color:#b58b78;font-weight:bold');console.info('The archive does not reward guessing. Examine the records, then compare what they say.');
+ render();window.ArchiveDossier=Object.freeze({status:()=>({evidence:state.evidence.length+'/10',awareness:state.awareness+'/8',session:'018'}),inspect:()=>{panel.classList.add('open');panel.setAttribute('aria-hidden','false');toggle.setAttribute('aria-expanded','true');}});
+ console.info('%c[FIELD DOSSIER AVAILABLE]','color:#b58b78;font-weight:bold');console.info('The archive does not reward guessing. Examine the records, then compare what they say.');console.info('Open FIELD DOSSIER at the lower-right corner, or press D.');
 })();

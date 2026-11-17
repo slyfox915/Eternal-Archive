@@ -3,15 +3,25 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Eternal Archive — Protocol VIII: The Eighth Witness</title>
-<meta name="archive-revision" content="0.8.2">
+<meta name="archive-revision" content="1.2.1">
 <!-- ARCHIVE MARGIN NOTE / E.V.: The public index is not the complete index. Count the observers, not the entries. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 fill=%22%23090a0b%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2222%22 fill=%22none%22 stroke=%22%23a53a37%22 stroke-width=%222%22/%3E%3Cpath d=%22M32 10v44M10 32h44%22 stroke=%22%23a99a79%22 stroke-width=%222%22/%3E%3C/svg%3E">
 <meta name="archive-custody" content="The eighteenth record was opened before the eighteenth visitor arrived.">
 <link rel="stylesheet" href="styles.css">
 
 </head>
-<body data-archive-build="1.0.0" data-observer-record="018" data-index-state="incomplete">
+<body data-archive-build="1.2.1" data-observer-record="018" data-index-state="incomplete">
 <!-- DO NOT REMOVE: The archive has always kept a second register. The first register counts names. The second counts readers. -->
+<!-- FIELD DOSSIER / persistent evidence interface -->
+<button type="button" id="dossierToggle" class="dossier-toggle" aria-controls="dossierPanel" aria-expanded="false">FIELD DOSSIER <span id="dossierCount">00 / 10</span></button>
+<aside id="dossierPanel" class="dossier-panel" role="dialog" aria-modal="false" aria-labelledby="dossierTitle" aria-hidden="true">
+  <div class="dossier-head"><div><div class="tag">OUTSIDER_018 / PRIVATE WORKING FILE</div><h2 id="dossierTitle">Field Dossier</h2><p>Evidence is retained when you examine a record. Compare sources before drawing conclusions.</p></div><button type="button" id="dossierClose" aria-label="Close Field Dossier">×</button></div>
+  <div class="awareness-wrap"><div class="awareness-label"><span>ARCHIVE AWARENESS</span><strong id="awarenessValue">0 / 8</strong></div><div class="awareness-track"><i id="awarenessBar"></i></div><p id="awarenessMessage">Your session has not drawn unusual attention.</p></div>
+  <div class="dossier-section-head"><span>RECOVERED EVIDENCE</span><span>LOCAL / SESSION 018</span></div>
+  <div id="evidenceList" class="evidence-list" aria-live="polite"><p class="empty-evidence">No evidence collected. Examine records, photographs, registry entries, and page anomalies.</p></div>
+  <div class="dossier-foot">Evidence and awareness are saved in this browser. Field Notes remains a separate notebook.</div>
+</aside>
+<div id="archiveInterference" class="archive-interference" role="dialog" aria-modal="true" aria-labelledby="interferenceTitle"><div class="interference-card"><div class="tag">ARCHIVE RESPONSE / SESSION 018</div><h2 id="interferenceTitle">Access irregularity</h2><p id="interferenceText"></p><button type="button" id="interferenceClose">RETURN TO RECORDS</button></div></div>
 <div class="shell" data-archive-node="public-terminal-003">
 <header class="top"><div class="brand" id="archiveBrand" title="ARCHIVE CUSTODY MARK / DO NOT REPEAT">E.A. / TERMINAL 003 <span style="color:#666">— ARCHIVAL DIVISION</span></div><div class="status">● INVESTIGATION PROTOCOL ACTIVE</div></header>
 <div id="observerSecret" class="archive-secret-panel" role="status" aria-live="polite"><strong>UNINDEXED OBSERVER RECORD / 018</strong>The archive did not count twenty-three bodies. It counted twenty-three identities. It now counts eighteen readers who have reached this record. The previous seventeen are not all accounted for.</div>
@@ -168,7 +178,7 @@ COUNT RECONCILIATION: Entries 01–23 contain 22 distinct people because Elias V
 <div id="archive-inspection-fragment" hidden data-clue="observer-count" data-previous-observers="17" data-current-observer="18" data-instruction="The record is counting readers, not sessions.">
   <span class="source-annotation">E.V. / If this text is visible, you have looked beneath the public record. Seventeen came before you. The archive has already written your number.</span>
 </div>
-<footer class="footer"><span>THE ETERNAL ARCHIVE / PUBLIC TERMINAL 003</span><span id="buildStamp" title="The footer is not part of the public index.">FICTIONAL ARCHIVE — RESTORATION BUILD 1.2.0</span></footer>
+<footer class="footer"><span>THE ETERNAL ARCHIVE / PUBLIC TERMINAL 003</span><span id="buildStamp" title="The footer is not part of the public index.">FICTIONAL ARCHIVE — RESTORATION BUILD 1.2.1</span></footer>
 </div>
 <!-- FIELD NOTES CONTROL: personal notes are stored only in this browser. -->
 <div id="archiveNotebook" class="archive-notebook" data-inspector-clue="The notebook was added after the public index was sealed." aria-label="Investigator's floating notebook">
