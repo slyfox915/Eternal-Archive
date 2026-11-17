@@ -15,8 +15,12 @@ function normalizeAnswer(value: unknown): string {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  if (req.method !== "POST") {
+    return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders });
+  }
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -30,14 +34,16 @@ Deno.serve(async (req: Request) => {
     if (!secret) {
       const secretMap = Deno.env.get("SUPABASE_SECRET_KEYS");
       if (secretMap) {
-        try { secret = JSON.parse(secretMap).default; } catch { /* try legacy env */ }
+        try { secret = JSON.parse(secretMap).default; } catch { /* use legacy env if available */ }
       }
     }
     if (!url || !secret) {
       return Response.json({ error: "Server validation is not configured." }, { status: 503, headers: corsHeaders });
     }
 
-    const admin = createClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } });
+    const admin = createClient(url, secret, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
     const { data: userData, error: userError } = await admin.auth.getUser(token);
     if (userError || !userData.user) {
       return Response.json({ error: "Player session is invalid. Refresh the archive and try again." }, { status: 401, headers: corsHeaders });
@@ -50,15 +56,20 @@ Deno.serve(async (req: Request) => {
       return Response.json({ error: "Invalid finding submission." }, { status: 400, headers: corsHeaders });
     }
 
-    const { data, error } = await admin.from("archive_answer_keys")
-      .select("accepted_answers").eq("case_number", caseNumber).maybeSingle();
+    const { data, error } = await admin
+      .from("archive_answer_keys")
+      .select("accepted_answers")
+      .eq("case_number", caseNumber)
+      .maybeSingle();
+
     if (error || !data) {
       console.error("Answer key lookup failed", error?.message);
       return Response.json({ error: "The archive could not verify this finding. Try again later." }, { status: 503, headers: corsHeaders });
     }
 
     const accepted = (data.accepted_answers as string[]).map(normalizeAnswer);
-    return Response.json({ correct: accepted.includes(answer) }, { status: 200, headers: corsHeaders });
+    const correct = accepted.includes(answer);
+    return Response.json({ correct }, { status: 200, headers: corsHeaders });
   } catch (error) {
     console.error("verify-archive-answer error", error);
     return Response.json({ error: "Unexpected validation error." }, { status: 500, headers: corsHeaders });
