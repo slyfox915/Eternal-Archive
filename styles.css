@@ -162,3 +162,7 @@ body.notebook-is-open{overflow:auto}
 /* PROTOCOL IX / THE LAST KEEPER */
 #stage9 .transcript p{line-height:1.75}#stage9 .puzzle{scroll-margin-top:24px}#keeperEpilogue .restricted-file{border-left:2px solid var(--accent,#70433d)}
 @media(max-width:640px){#stage9 .stats{grid-template-columns:1fr 1fr}#stage9 .stats .stat:first-child{grid-column:1/-1}}
+
+/* PROTOCOL X / THE END OF THE ARCHIVE */
+#stage10 .transcript p{line-height:1.75}#stage10 .puzzle{scroll-margin-top:24px}#archiveFinalRecord .restricted-file,#secretFinalRecord .restricted-file{border-left:2px solid var(--accent,#70433d)}#stage10 .stats{grid-template-columns:2fr 1fr 1fr}
+@media(max-width:640px){#stage10 .stats{grid-template-columns:1fr 1fr}#stage10 .stats .stat:first-child{grid-column:1/-1}}
