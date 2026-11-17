@@ -147,15 +147,25 @@ NOTICE: Commands are recorded in the maintenance ledger.
 </div>
 <footer class="footer"><span>THE ETERNAL ARCHIVE / PUBLIC TERMINAL 003</span><span id="buildStamp" title="The footer is not part of the public index.">FICTIONAL ARCHIVE — RESTORATION BUILD 0.8.1</span></footer>
 </div>
-<!-- FIELD NOTES CONTROL: app.js binds #notebookToggle to #notebookPanel. If this control is visible, the notebook script should be active. -->
+<!-- FIELD NOTES CONTROL: personal notes are stored only in this browser. -->
 <div id="archiveNotebook" class="archive-notebook" data-inspector-clue="The notebook was added after the public index was sealed." aria-label="Investigator's floating notebook">
   <button id="notebookToggle" class="notebook-fab" type="button" aria-expanded="false" aria-controls="notebookPanel"><span aria-hidden="true">✎</span><span>FIELD NOTES</span></button>
-  <section id="notebookPanel" class="notebook-panel" hidden>
+  <section id="notebookPanel" class="notebook-panel" hidden aria-label="Investigator's notebook">
     <header class="notebook-head"><div><div class="notebook-stamp">PERSONAL / UNSENT</div><strong>Investigator's notebook</strong></div><button id="notebookClose" class="notebook-close" type="button" aria-label="Close notebook">×</button></header>
+    <div class="notebook-pagebar"><div id="notebookPageTabs" class="notebook-page-tabs" role="tablist" aria-label="Notebook pages"></div><button id="notebookAddPage" class="notebook-tool notebook-add-page" type="button" title="Create a new page">＋ NEW TAB</button></div>
+    <div class="notebook-page-actions"><button id="notebookRenamePage" class="notebook-tool" type="button">RENAME TAB</button><button id="notebookDeletePage" class="notebook-tool" type="button">DELETE TAB</button></div>
     <div class="notebook-tabs"><button type="button" class="notebook-tab active" data-notebook-tab="write">WRITE</button><button type="button" class="notebook-tab" data-notebook-tab="draw">DRAW</button></div>
-    <div id="notebookWrite" class="notebook-body"><label class="notebook-label" for="notebookText">PRIVATE NOTES / TEXT</label><textarea id="notebookText" placeholder="Record a clue, theory, name, or question..." spellcheck="true"></textarea></div>
+    <div id="notebookWrite" class="notebook-body">
+      <label class="notebook-label" for="notebookEditor">RICH FIELD NOTES / ACTIVE PAGE</label>
+      <div class="notebook-rich-toolbar" role="toolbar" aria-label="Text formatting">
+        <button type="button" data-edit="bold" title="Bold"><b>B</b></button><button type="button" data-edit="italic" title="Italic"><i>I</i></button><button type="button" data-edit="underline" title="Underline"><u>U</u></button><span></span>
+        <button type="button" data-edit="formatBlock" data-value="H2" title="Heading">H</button><button type="button" data-edit="insertUnorderedList" title="Bullet list">• LIST</button><button type="button" data-edit="insertOrderedList" title="Numbered list">1. LIST</button><button type="button" data-edit="removeFormat" title="Clear formatting">CLEAR FORMAT</button>
+      </div>
+      <div id="notebookEditor" class="notebook-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Rich text field notes" data-placeholder="Record clues, theories, names, questions... Use the toolbar to format your notes."></div>
+      <p class="notebook-help">Format text, make lists, and keep separate pages for different discoveries. Changes save automatically.</p>
+    </div>
     <div id="notebookDraw" class="notebook-body" hidden><div class="notebook-tools"><label>INK <input id="notebookColor" type="color" value="#d7cbb7" aria-label="Drawing color"></label><label>SIZE <input id="notebookSize" type="range" min="1" max="12" value="3" aria-label="Pen size"></label><button id="notebookEraser" type="button" class="notebook-tool">ERASER</button><button id="notebookClear" type="button" class="notebook-tool">CLEAR</button></div><canvas id="notebookCanvas" aria-label="Drawing area"></canvas><p class="notebook-help">Draw with mouse, touch, or stylus. Your sketch is saved on this device.</p></div>
-    <footer class="notebook-foot"><span id="notebookStatus" aria-live="polite">SAVED LOCALLY</span><div><button id="notebookExport" type="button" class="notebook-tool">EXPORT</button><button id="notebookSave" type="button" class="notebook-tool">SAVE</button></div></footer>
+    <footer class="notebook-foot"><span id="notebookStatus" aria-live="polite">SAVED LOCALLY</span><div><button id="notebookExport" type="button" class="notebook-tool">EXPORT ALL</button><button id="notebookSave" type="button" class="notebook-tool">SAVE</button></div></footer>
     <p class="notebook-privacy">Notes and sketches stay in this browser on this device. They are not sent to the archive or Supabase.</p>
   </section>
 </div>

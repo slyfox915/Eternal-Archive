@@ -298,68 +298,48 @@ console.warn('[MARGIN VIII] The eighth entry has no name because it is a positio
 })();
 
 
-/* FIELD NOTES / LOCAL INVESTIGATOR NOTEBOOK
-   This module is deliberately separate so the notebook remains independently testable. */
+/* FIELD NOTES / RICH LOCAL INVESTIGATOR NOTEBOOK */
 (function initFieldNotes(){
-  const toggle=document.getElementById('notebookToggle');
-  const panel=document.getElementById('notebookPanel');
-  const close=document.getElementById('notebookClose');
-  const textArea=document.getElementById('notebookText');
-  const canvas=document.getElementById('notebookCanvas');
-  const status=document.getElementById('notebookStatus');
-  if(!toggle||!panel||!textArea||!canvas){console.error('[FIELD NOTES] Required notebook elements are missing.');return;}
-  const STORE='ea_field_notes_v1';
-  let saved={text:'',drawing:''};
-  try{saved={...saved,...JSON.parse(localStorage.getItem(STORE)||'{}')};}catch(_e){}
-  textArea.value=saved.text||'';
+  const toggle=document.getElementById('notebookToggle'),panel=document.getElementById('notebookPanel'),close=document.getElementById('notebookClose');
+  const editor=document.getElementById('notebookEditor'),canvas=document.getElementById('notebookCanvas'),status=document.getElementById('notebookStatus');
+  const tabsHost=document.getElementById('notebookPageTabs');
+  if(!toggle||!panel||!close||!editor||!canvas||!tabsHost){console.error('[FIELD NOTES] Notebook controls could not initialize.');return;}
+  const STORE='ea_field_notes_v2';
+  const makeId=()=>`page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`;
+  let data={pages:[{id:'page-1',title:'Untitled notes',html:''}],activeId:'page-1',drawing:''};
+  try{const raw=JSON.parse(localStorage.getItem(STORE)||'null');if(raw&&Array.isArray(raw.pages)&&raw.pages.length){data={...data,...raw};data.pages=raw.pages.filter(x=>x&&x.id).map(x=>({id:String(x.id),title:String(x.title||'Untitled notes'),html:String(x.html||'')}));if(!data.pages.length)data.pages=[{id:makeId(),title:'Untitled notes',html:''}];if(!data.pages.some(x=>x.id===data.activeId))data.activeId=data.pages[0].id;}else if(!raw){const legacy=JSON.parse(localStorage.getItem('ea_field_notes_v1')||'null');if(legacy){const escaped=String(legacy.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');data.pages[0].html=escaped;data.drawing=legacy.drawing||'';}}}catch(e){console.warn('[FIELD NOTES] Existing notes could not be read.',e);}
+  let erasing=false,drawing=false,last=null,saveTimer=null;
   const ctx=canvas.getContext('2d');
-  let drawing=false,erasing=false,last=null,dirty=false;
-  const setStatus=(message='SAVED LOCALLY')=>{if(status)status.textContent=message;};
-  function resizeCanvas(restore=true){
-    const previous=restore&&canvas.dataset.ready==='1'?canvas.toDataURL('image/png'):saved.drawing;
-    const rect=canvas.getBoundingClientRect();
-    const ratio=Math.max(1,window.devicePixelRatio||1);
-    canvas.width=Math.max(1,Math.round(rect.width*ratio));
-    canvas.height=Math.max(1,Math.round(rect.height*ratio));
-    ctx.setTransform(ratio,0,0,ratio,0,0);
-    canvas.dataset.ready='1';
-    ctx.fillStyle='#090b0c';ctx.fillRect(0,0,rect.width,rect.height);
-    if(previous){const img=new Image();img.onload=()=>{ctx.drawImage(img,0,0,rect.width,rect.height);};img.src=previous;}
-  }
-  function persist(){
-    try{saved.text=textArea.value;saved.drawing=canvas.toDataURL('image/png');localStorage.setItem(STORE,JSON.stringify(saved));setStatus('SAVED LOCALLY');dirty=false;}
-    catch(e){setStatus('STORAGE FULL — EXPORT NOTES');console.warn('[FIELD NOTES] Local save unavailable',e);}
-  }
-  function open(){panel.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.classList.add('active');requestAnimationFrame(()=>{resizeCanvas(true);});setStatus('NOTEBOOK OPEN');}
-  function hide(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.classList.remove('active');toggle.focus({preventScroll:true});}
-  toggle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();panel.hidden?open():hide();});
-  close?.addEventListener('click',hide);
+  const current=()=>data.pages.find(x=>x.id===data.activeId)||data.pages[0];
+  const setStatus=(v='SAVED LOCALLY')=>{status.textContent=v;};
+  function persist(){try{const page=current();if(page)page.html=editor.innerHTML;data.drawing=canvas.dataset.ready==='1'?canvas.toDataURL('image/png'):data.drawing;localStorage.setItem(STORE,JSON.stringify(data));setStatus('SAVED LOCALLY');}catch(e){setStatus('STORAGE FULL — EXPORT NOTES');console.warn('[FIELD NOTES] Local save unavailable',e);}}
+  function queueSave(){setStatus('UNSAVED CHANGES');clearTimeout(saveTimer);saveTimer=setTimeout(persist,500);}
+  function renderPageTabs(){tabsHost.replaceChildren();data.pages.forEach(page=>{const b=document.createElement('button');b.type='button';b.className='notebook-page-tab'+(page.id===data.activeId?' active':'');b.setAttribute('role','tab');b.setAttribute('aria-selected',page.id===data.activeId?'true':'false');b.textContent=page.title;b.title=page.title;b.addEventListener('click',()=>selectPage(page.id));tabsHost.appendChild(b);});}
+  function selectPage(id){const old=current();if(old)old.html=editor.innerHTML;data.activeId=id;editor.innerHTML=current().html||'';renderPageTabs();persist();}
+  function resizeCanvas(){const previous=canvas.dataset.ready==='1'?canvas.toDataURL('image/png'):data.drawing;const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;const ratio=Math.max(1,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*ratio);canvas.height=Math.round(rect.height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);ctx.fillStyle='#090b0c';ctx.fillRect(0,0,rect.width,rect.height);canvas.dataset.ready='1';if(previous){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,rect.width,rect.height);img.src=previous;}}
+  function open(){panel.hidden=false;toggle.hidden=true;toggle.setAttribute('aria-expanded','true');requestAnimationFrame(()=>{resizeCanvas();});setStatus('NOTEBOOK OPEN');}
+  function hide(){persist();panel.hidden=true;toggle.hidden=false;toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});}
+  toggle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(panel.hidden)open();});
+  close.addEventListener('click',hide);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)hide();});
-  document.querySelectorAll('[data-notebook-tab]').forEach(tab=>tab.addEventListener('click',()=>{
-    const draw=tab.dataset.notebookTab==='draw';
-    document.getElementById('notebookWrite').hidden=draw;
-    document.getElementById('notebookDraw').hidden=!draw;
-    document.querySelectorAll('[data-notebook-tab]').forEach(t=>t.classList.toggle('active',t===tab));
-    if(draw)requestAnimationFrame(()=>resizeCanvas(true));
-  }));
-  textArea.addEventListener('input',()=>{setStatus('UNSAVED CHANGES');clearTimeout(textArea._saveTimer);textArea._saveTimer=setTimeout(persist,450);});
+  document.getElementById('notebookAddPage').addEventListener('click',()=>{const old=current();if(old)old.html=editor.innerHTML;const page={id:makeId(),title:`Page ${data.pages.length+1}`,html:''};data.pages.push(page);data.activeId=page.id;editor.innerHTML='';renderPageTabs();persist();editor.focus();});
+  document.getElementById('notebookRenamePage').addEventListener('click',()=>{const page=current();const name=window.prompt('Rename this notebook tab:',page.title);if(name&&name.trim()){page.title=name.trim().slice(0,40);renderPageTabs();persist();}});
+  document.getElementById('notebookDeletePage').addEventListener('click',()=>{if(data.pages.length===1){setStatus('KEEP AT LEAST ONE TAB');return;}const page=current();if(!window.confirm(`Delete “${page.title}”? This cannot be undone.`))return;data.pages=data.pages.filter(x=>x.id!==page.id);data.activeId=data.pages[0].id;editor.innerHTML=current().html||'';renderPageTabs();persist();});
+  document.querySelectorAll('[data-notebook-tab]').forEach(tab=>tab.addEventListener('click',()=>{const draw=tab.dataset.notebookTab==='draw';document.getElementById('notebookWrite').hidden=draw;document.getElementById('notebookDraw').hidden=!draw;document.querySelectorAll('[data-notebook-tab]').forEach(t=>t.classList.toggle('active',t===tab));if(draw)requestAnimationFrame(resizeCanvas);}));
+  document.querySelectorAll('[data-edit]').forEach(button=>button.addEventListener('click',()=>{editor.focus();const cmd=button.dataset.edit;document.execCommand(cmd,false,button.dataset.value||null);queueSave();}));
+  editor.addEventListener('input',queueSave);
   const point=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
   canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;last=point(e);canvas.setPointerCapture?.(e.pointerId);ctx.beginPath();ctx.arc(last.x,last.y,Math.max(1,Number(document.getElementById('notebookSize').value)/2),0,Math.PI*2);ctx.fillStyle=erasing?'#090b0c':document.getElementById('notebookColor').value;ctx.fill();setStatus('DRAWING…');});
-  canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.lineWidth=Number(document.getElementById('notebookSize').value);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=erasing?'#090b0c':document.getElementById('notebookColor').value;ctx.stroke();last=p;});
-  const stopDrawing=()=>{if(!drawing)return;drawing=false;last=null;persist();};
-  canvas.addEventListener('pointerup',stopDrawing);canvas.addEventListener('pointercancel',stopDrawing);canvas.addEventListener('lostpointercapture',stopDrawing);
-  document.getElementById('notebookEraser')?.addEventListener('click',e=>{erasing=!erasing;e.currentTarget.classList.toggle('active',erasing);e.currentTarget.textContent=erasing?'ERASER ON':'ERASER';});
-  document.getElementById('notebookClear')?.addEventListener('click',()=>{const r=canvas.getBoundingClientRect();ctx.fillStyle='#090b0c';ctx.fillRect(0,0,r.width,r.height);persist();});
-  document.getElementById('notebookSave')?.addEventListener('click',persist);
-  document.getElementById('notebookExport')?.addEventListener('click',()=>{
-    persist();const download=(blob,name)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-    download(new Blob([textArea.value],{type:'text/plain;charset=utf-8'}),'eternal-archive-field-notes.txt');
-    canvas.toBlob(blob=>{if(blob)download(blob,'eternal-archive-field-sketch.png');},'image/png');setStatus('EXPORTED TXT + PNG');
-  });
-  window.addEventListener('resize',()=>{if(!panel.hidden)resizeCanvas(true);});
-  // Keep the drawing layer initialized after the panel has a measurable size.
-  if(!panel.hidden)resizeCanvas(false);
-  console.info('%c[FIELD NOTES]','color:#c17b70;font-weight:bold','Local notebook module ready. Click FIELD NOTES to open.');
+  canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const pt=point(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(pt.x,pt.y);ctx.lineWidth=Number(document.getElementById('notebookSize').value);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=erasing?'#090b0c':document.getElementById('notebookColor').value;ctx.stroke();last=pt;});
+  const stopDrawing=()=>{if(!drawing)return;drawing=false;last=null;persist();};canvas.addEventListener('pointerup',stopDrawing);canvas.addEventListener('pointercancel',stopDrawing);canvas.addEventListener('lostpointercapture',stopDrawing);
+  document.getElementById('notebookEraser').addEventListener('click',e=>{erasing=!erasing;e.currentTarget.classList.toggle('active',erasing);e.currentTarget.textContent=erasing?'ERASER ON':'ERASER';});
+  document.getElementById('notebookClear').addEventListener('click',()=>{const r=canvas.getBoundingClientRect();ctx.fillStyle='#090b0c';ctx.fillRect(0,0,r.width,r.height);persist();});
+  document.getElementById('notebookSave').addEventListener('click',persist);
+  document.getElementById('notebookExport').addEventListener('click',()=>{const page=current();if(page)page.html=editor.innerHTML;persist();const plain=data.pages.map(x=>`# ${x.title}\n\n${x.html.replace(/<br\s*\/?\s*>/gi,'\n').replace(/<\/(p|div|h[1-6]|li)>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ')}`).join('\n\n------------------------------\n\n');const download=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};download(new Blob([plain],{type:'text/plain;charset=utf-8'}),'eternal-archive-field-notes.txt');canvas.toBlob(blob=>{if(blob)download(blob,'eternal-archive-field-sketch.png');},'image/png');setStatus('EXPORTED ALL PAGES + SKETCH');});
+  window.addEventListener('resize',()=>{if(!panel.hidden)resizeCanvas();});
+  renderPageTabs();editor.innerHTML=current().html||'';
+  if(data.drawing){requestAnimationFrame(()=>resizeCanvas());}
+  console.info('%c[FIELD NOTES]','color:#c17b70;font-weight:bold','Rich notebook ready. Pages are local to this browser.');
 })();
 
 /* INSPECTOR / CONSOLE CLUE INDEX — clues are lore, never answer keys. */
